@@ -21,7 +21,6 @@ import java.net.URL;
 /**
  * User: james
  */
-/*
 public class HttpLoaderReduce extends JnomicsReducer<IntWritable, SEMetaInfo, Text, NullWritable> {
 
     private byte []buffer = new byte[10240];
@@ -84,10 +83,15 @@ public class HttpLoaderReduce extends JnomicsReducer<IntWritable, SEMetaInfo, Te
             } catch (Exception e) {
                 throw new IOException("Unable to write file");
             }
+
+            /*
+            while((read = is.read(buffer)) > 0){
+                outputStream.write(buffer,0,read);
+                context.progress();
+            }*/
             is.close();
             context.write(new Text("Completed Downloading file: " + info.getFile()),NullWritable.get());
         }
     }
 
 }
-*/
