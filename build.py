@@ -6,6 +6,8 @@ import os
 
 THIS_SCRIPT = os.path.dirname(os.path.realpath( __file__ ))
 
+MAIN_CLASS = 'edu/cshl/schatz/jnomics/tools/JnomicsMain'
+
 PATHS = {
     'SRC': "src/main/java",
     'OUT': "target",
@@ -14,14 +16,17 @@ PATHS = {
     'OUT_JAR': 'jnomics-0.3.jar'
 }
 
-MAIN_CLASS = 'edu/cshl/schatz/jnomics/tools/JnomicsMain'
-
-
-def compile():
-    for p in PATHS.iterkeys():
+for p in PATHS.iterkeys():
         PATHS[p] = os.path.join(THIS_SCRIPT, PATHS[p])
 
-    LIBRARIES = filter(lambda x: x.endswith(".jar"), os.listdir(PATHS['LIB']))
+
+
+def getLibraries():
+    return filter(lambda x: x.endswith(".jar"), os.listdir(PATHS['LIB']))
+
+def compile():
+
+    LIBRARIES = getLibraries()
 
     CLASSPATH = ":".join(map(lambda x: os.path.join(PATHS['LIB'], x), LIBRARIES))
     
@@ -57,6 +62,13 @@ def jar():
         
     cmd = "jar -cfe %s %s -C %s ."  % (out_jar,MAIN_CLASS,out_dir)
 
+    #make fat jar
+    LIBRARIES = map(lambda x: os.path.join(PATHS['LIB'], x), getLibraries())
+    os.system('rm -rf %s' % os.path.join(PATHS['OUT'],"META-INF"))
+    for lib in LIBRARIES:
+            os.system("unzip -qo %s -d %s" % (lib,PATHS['OUT']))
+            os.system('rm -rf %s' % os.path.join(PATHS['OUT'],"META-INF"))
+    
     print "Building Jar %s " % out_jar
     os.system(cmd)
 
