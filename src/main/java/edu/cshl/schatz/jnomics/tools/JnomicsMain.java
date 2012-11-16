@@ -73,6 +73,7 @@ public class JnomicsMain extends Configured implements Tool {
                     put("textkmercount_reduce", TextKmerCountReduce.class);
                     put("textkmercounthist_reduce",TextKmerCountHistReduce.class);
                     put("textcountreadcorrected_reduce",TextCountReadCorrectedReduce.class);
+                    put("coverage_reduce", CoverageReduce.class);
                 }
             };
 
