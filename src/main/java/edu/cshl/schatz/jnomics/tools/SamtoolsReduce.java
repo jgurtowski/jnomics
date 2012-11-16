@@ -4,6 +4,9 @@ import edu.cshl.schatz.jnomics.cli.JnomicsArgument;
 import edu.cshl.schatz.jnomics.io.ThreadedStreamConnector;
 import edu.cshl.schatz.jnomics.mapreduce.JnomicsReducer;
 import edu.cshl.schatz.jnomics.ob.SAMRecordWritable;
+import edu.cshl.schatz.jnomics.util.Command;
+import edu.cshl.schatz.jnomics.util.OutputStreamHandler;
+import edu.cshl.schatz.jnomics.util.ProcessUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -35,9 +38,12 @@ public class SamtoolsReduce extends JnomicsReducer<SamtoolsMap.SamtoolsKey, SAMR
     private final JnomicsArgument samtools_opts_arg = new JnomicsArgument("samtools_opts","Samtools mpileup options", false);
     private final JnomicsArgument bcftools_opts_arg = new JnomicsArgument("bcftools_opts","bcftools view options", false);
     private final JnomicsArgument reference_file_arg = new JnomicsArgument("reference_fa",
-									   "Reference Fasta (must be indexed)", true);
+            "Reference Fasta (must be indexed)", true);
+
     private FileSystem hdfs;
 
+    private String samtools_bin, bcftools_bin, reference_file, samtools_opts, bcftools_opts;
+    
     @Override
     public Class getOutputKeyClass() {
         return Text.class;
@@ -108,6 +114,13 @@ public class SamtoolsReduce extends JnomicsReducer<SamtoolsMap.SamtoolsKey, SAMR
         String binsize_str = conf.get(SamtoolsMap.genome_binsize_arg.getName());
         binsize = binsize_str == null ? SamtoolsMap.DEFAULT_GENOME_BINSIZE : Integer.parseInt(binsize_str);
         hdfs = FileSystem.get(conf);
+
+        samtools_bin = conf.get(samtools_bin_arg.getName());
+        bcftools_bin = conf.get(bcftools_bin_arg.getName());
+        reference_file = conf.get(reference_file_arg.getName());
+        samtools_opts = conf.get(samtools_opts_arg.getName(),"");
+        bcftools_opts = conf.get(bcftools_opts_arg.getName(),"");
+
     }
 
     @Override
@@ -115,13 +128,6 @@ public class SamtoolsReduce extends JnomicsReducer<SamtoolsMap.SamtoolsKey, SAMR
             throws IOException, InterruptedException {
 
         System.out.println("Begin Samtools Reduce");
-        /**Get Configuration **/
-        Configuration conf = context.getConfiguration();
-        String samtools_bin = conf.get(samtools_bin_arg.getName());
-        String bcftools_bin = conf.get(bcftools_bin_arg.getName());
-        String reference_file = conf.get(reference_file_arg.getName());
-        String samtools_opts = conf.get(samtools_opts_arg.getName(),"");
-        String bcftools_opts = conf.get(bcftools_opts_arg.getName(),"");
 
         System.out.println("Writing temp bam files");
         /**Setup temp bam file**/
@@ -129,33 +135,29 @@ public class SamtoolsReduce extends JnomicsReducer<SamtoolsMap.SamtoolsKey, SAMR
         File tmpBam = new File(taskAttemptId+"_"+(reduceIt++)+".bam");
 
         /**launch sam-to-bam conversion and write entries to process**/
-        String samtoolsCvtCmd = String.format("%s view -Sb - -o %s", samtools_bin, tmpBam.getAbsolutePath());
-        final Process samtoolsCvtProcess = Runtime.getRuntime().exec(samtoolsCvtCmd);
+        String samtoolsS2B = String.format("%s view -Sb - -o %s", samtools_bin, tmpBam.getAbsolutePath());
 
-        //reconnect error stream so we can debug process errors through hadoop
-        Thread samtoolsCvtProcessErr = new Thread(new ThreadedStreamConnector(samtoolsCvtProcess.getErrorStream(),System.err));
-        samtoolsCvtProcessErr.start();
-        /**write the entries to the sam-bam convert process**/
-        boolean first =  true;
-        PrintWriter writer = new PrintWriter(samtoolsCvtProcess.getOutputStream());
+        ProcessUtil.runCommandEZ(new Command(samtoolsS2B, new OutputStreamHandler() {
+            @Override
+            public void handle(OutputStream out) {
+                boolean first =  true;
+                PrintWriter writer = new PrintWriter(out);
 
-        for(SAMRecordWritable record: values){
-            if(first){
-                writer.println(record.getTextHeader());
-                first = false;
+                for(SAMRecordWritable record: values){
+                    if(first){
+                        writer.println(record.getTextHeader());
+                        first = false;
+                    }
+                    context.progress();
+                    writer.println(record);
+                }
+                writer.close();
             }
-            context.progress();
-            writer.println(record);
-        }
-        writer.close();
-
-        samtoolsCvtProcess.waitFor();
-        samtoolsCvtProcessErr.join();
+        }));
         
         /** Index the temp bam**/
         String samtoolsIdxCmd = String.format("%s index %s", samtools_bin, tmpBam.getAbsolutePath());
-        final Process samtoolsIdxProcess = Runtime.getRuntime().exec(samtoolsIdxCmd);
-        samtoolsIdxProcess.waitFor();
+        ProcessUtil.runCommandEZ(new Command(samtoolsIdxCmd));
 
         System.out.println("Running mpileup/bcftools snp operation");
         /** Run mpileup on indexed bam and pipe output to bcftools **/
