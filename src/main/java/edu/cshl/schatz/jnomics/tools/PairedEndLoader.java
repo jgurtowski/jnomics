@@ -24,15 +24,13 @@ import java.util.Iterator;
 /**
  * User: james
  */
-public class PairedEndLoader{
+public class PairedEndLoader extends SequenceLoaderBase{
 
     final Logger logger = LoggerFactory.getLogger(PairedEndLoader.class);
 
-    private ReadCollectionWritable key = new ReadCollectionWritable();
     private ReadWritable r1= new ReadWritable();
     private ReadWritable r2 = new ReadWritable();
     private Text keyName = new Text();
-    private NullWritable value = NullWritable.get();
 
     public PairedEndLoader(){
         key.addRead(r1);
@@ -40,24 +38,6 @@ public class PairedEndLoader{
         key.setName(keyName);
     }
 
-    private SequenceFile.Writer getWriter(FileSystem fs, Path output) throws Exception {
-        Configuration conf = getConf();
-        SequenceFile.Writer writer;
-        if(conf.get("mapred.output.compress","").compareTo("true") == 0){
-            String codec_str = conf.get("mapred.output.compression.codec","org.apache.hadoop.io.compress.GzipCodec");
-            CompressionCodec codec = (CompressionCodec) ReflectionUtils.newInstance(Class.forName(codec_str), conf);
-            writer = SequenceFile.createWriter(fs,conf,output,key.getClass(),value.getClass(),
-                    SequenceFile.CompressionType.BLOCK, codec);
-        }else{//no compression
-            writer = SequenceFile.createWriter(fs,conf,output,key.getClass(),value.getClass());
-        }
-        
-        logger.info("Compressed with:" + writer.getCompressionCodec() );
-
-        return writer;
-    }
-    
-    
     /**
      *
      * @param in1 Input stream for first read pair file
@@ -137,21 +117,6 @@ public class PairedEndLoader{
         }
         parser1.close();
         writer.close();
-    }
-    
-    /**
-     * Allows the task to report progress
-     * Override to implement own progress hook
-     */
-    protected void progress(){
-    }
-
-    /**
-     * Get a new configuration, or overload
-     * @return Configuration
-     */
-    protected Configuration getConf(){
-        return new Configuration();
     }
     
 

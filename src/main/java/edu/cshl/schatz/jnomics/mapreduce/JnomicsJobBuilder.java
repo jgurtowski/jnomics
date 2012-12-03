@@ -77,6 +77,18 @@ public class JnomicsJobBuilder {
         conf.setInt("mapred.reduce.tasks", num);
         return this;
     }
+
+    //note doesn't really work, hadoop ignores
+    public JnomicsJobBuilder setMapTasks(int num){
+        conf.setInt("mapred.map.tasks", num);
+        return this;
+    }
+    
+    public JnomicsJobBuilder setMaxSplitSize(int num){
+        conf.setInt("mapred.max.split.size",num);
+        return this;
+    }
+    
     
     public JnomicsJobBuilder setInputPath(String in){
         conf.set("mapred.input.dir",in);
@@ -160,7 +172,7 @@ public class JnomicsJobBuilder {
                 throw new Exception("Missing required arg: "+arg.getName());
             }
         }
-        
+
         return conf;
     }
 

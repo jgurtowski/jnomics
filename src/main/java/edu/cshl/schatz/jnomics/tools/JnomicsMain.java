@@ -9,11 +9,7 @@ import edu.cshl.schatz.jnomics.mapreduce.JnomicsReducer;
 import org.apache.commons.cli.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
-import org.apache.hadoop.filecache.DistributedCache;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -49,6 +45,7 @@ public class JnomicsMain extends Configured implements Tool {
                     put("textkmercounthist_map",TextKmerCountHistMap.class);
                     put("textcountreadcorrected_map", TextCountReadCorrectedMap.class);
                     put("customreadkmerfilter_map", CustomReadKmerFilterMap.class);
+                    put("blast_map", BlastMap.class);
                 }
             };
 
@@ -94,6 +91,7 @@ public class JnomicsMain extends Configured implements Tool {
         //System.out.println("helper-task-list\t:\tList all helper tasks");
         //System.out.println("helper-task\t:\tRun helper task");
         System.out.println("loader-pe\t:\tLoad paired end sequencing file into hdfs");
+        System.out.println("loader-se\t:\tLoad single end sequencing file into hdfs");
         System.out.println("hdfs-stream\t:\tStream data to hdfs");
         System.out.println("alignment-extract\t:\textract alignments");
         System.out.println("manifest-loader\t:\tLoad manifest file into hdfs");
@@ -119,8 +117,10 @@ public class JnomicsMain extends Configured implements Tool {
                 System.out.println(t);
             }
         } else if (args[0].compareTo("loader-pe") == 0) {
-            //PairedEndLoader.main(Arrays.copyOfRange(args, 1, args.length));
-        } else if (args[0].compareTo("hdfs-stream") ==0){
+            PairedEndLoader.main(Arrays.copyOfRange(args, 1, args.length));
+        } else if (args[0].compareTo("loader-se") == 0){
+            SingleEndLoader.main(Arrays.copyOfRange(args,1,args.length));
+        }else if (args[0].compareTo("hdfs-stream") ==0){
             StreamFileToHDFS.main(Arrays.copyOfRange(args,1,args.length));
         } else if (args[0].compareTo("alignment-extract") ==0){
             AlignmentSortExtract.main(Arrays.copyOfRange(args, 1, args.length));
@@ -188,7 +188,8 @@ public class JnomicsMain extends Configured implements Tool {
         options.addOption(OptionBuilder.withArgName("required").withLongOpt("out").isRequired(true).hasArg().create());
         options.addOption(OptionBuilder.withArgName("optional").withLongOpt("archives").isRequired(false).hasArg().create());
         options.addOption(OptionBuilder.withArgName("optional").withLongOpt("num_reducers").isRequired(false).hasArg().create());
-
+        options.addOption(OptionBuilder.withArgName("optional").withLongOpt("max_split_size").isRequired(false).hasArg().create());
+        
         ExtendedGnuParser parser = new ExtendedGnuParser(true);
         HelpFormatter formatter = new HelpFormatter();
         CommandLine cli = null;
@@ -233,10 +234,20 @@ public class JnomicsMain extends Configured implements Tool {
             }
         }
 
+        /**Set num map tasks**/
+        if(cli.hasOption("num_mappers")){
+            builder.setMapTasks(Integer.parseInt(cli.getOptionValue("num_mappers")));
+        }
+
         /**Set num reduce tasks**/
         if(cli.hasOption("num_reducers")){
             builder.setReduceTasks(Integer.parseInt(cli.getOptionValue("num_reducers")));
         }
+        
+        if(cli.hasOption("max_split_size")){
+            builder.setMaxSplitSize(Integer.parseInt(cli.getOptionValue("max_split_size")));
+        }
+        
         
         /**get additional args from mapper and reducer selected**/
         for( JnomicsArgument arg: builder.getArgs() ){
@@ -262,141 +273,6 @@ public class JnomicsMain extends Configured implements Tool {
         
         Job job = new Job(builder.getJobConf());
         job.setJarByClass(JnomicsMain.class);
-        return job.waitForCompletion(true) ? 0 : 1;
-    }
-    
-
-    public int runold(String[] args) throws Exception {
-        JnomicsArgument map_arg = new JnomicsArgument("mapper", "map task", true);
-        JnomicsArgument red_arg = new JnomicsArgument("reducer", "reduce task", false);
-        JnomicsArgument in_arg = new JnomicsArgument("in", "Input path", true);
-        JnomicsArgument out_arg = new JnomicsArgument("out", "Output path", true);
-
-        JnomicsArgument[] jargs = new JnomicsArgument[]{map_arg, red_arg, in_arg, out_arg};
-
-        try {
-            JnomicsArgument.parse(jargs, args);
-        } catch (MissingOptionException e) {
-            System.out.println("Error missing options:" + e.getMissingOptions());
-            System.out.println();
-            ToolRunner.printGenericCommandUsage(System.out);
-            JnomicsArgument.printUsage("Map-Reduce Options:", jargs, System.out);
-            return 1;
-        }
-
-        Class<? extends JnomicsMapper> mapperClass = mapperClasses.get(map_arg.getValue());
-        if( null != red_arg.getValue() && null == reducerClasses.get(red_arg.getValue())){
-            System.out.println("Unknown Reducer: " + red_arg.getValue());
-            System.out.println("Available Reducers:");
-            for (Object t : reducerClasses.keySet()) {
-                System.out.println(t);
-            }
-            return 1;
-        }
-        Class<? extends JnomicsReducer> reducerClass = red_arg.getValue() == null ? null : reducerClasses.get(red_arg.getValue());
-
-        if (mapperClass == null) {
-            System.out.println("Bad Mapper");
-            ToolRunner.printGenericCommandUsage(System.out);
-            JnomicsArgument.printUsage("Map-Reduce Options:", jargs, System.out);
-            return 1;
-        }
-
-        Configuration conf = getConf();
-
-        /** get more cli params **/
-        JnomicsMapper mapInst = mapperClass.newInstance();
-        
-        try {
-            JnomicsArgument.parse(mapInst.getArgs(), args);
-        } catch (MissingOptionException e) {
-            System.out.println("Error missing options:" + e.getMissingOptions());
-            ToolRunner.printGenericCommandUsage(System.out);
-            JnomicsArgument.printUsage("Map Options:", mapInst.getArgs(), System.out);
-            return 1;
-        }
-        //add all arguments to configuration
-        for (JnomicsArgument jarg : mapInst.getArgs()) {
-            if (jarg.getValue() != null)
-                conf.set(jarg.getName(), jarg.getValue());
-        }
-        
-        Map.Entry<String,String> entry = null;
-        for(Object entryO: mapInst.getConfModifiers().entrySet()){
-            entry = (Map.Entry<String,String>)entryO;
-            conf.set(entry.getKey(),entry.getValue());
-        }
-
-
-        /** get more cli params **/
-        JnomicsReducer reduceInst = null;
-        if (null != reducerClass)
-            reduceInst = reducerClass.newInstance();
-        if (null != reduceInst){
-            try {
-                JnomicsArgument.parse(reduceInst.getArgs(), args);
-            } catch (MissingOptionException e) {
-                System.out.println("Error missing options:" + e.getMissingOptions());
-                ToolRunner.printGenericCommandUsage(System.out);
-                JnomicsArgument.printUsage("Reduce Options:", reduceInst.getArgs(), System.out);
-                return 1;
-            }
-            //add all arguments to configuration
-            for (JnomicsArgument jarg : reduceInst.getArgs()) {
-                System.out.println(jarg.getName() + ":" + jarg.getValue());
-                if (jarg.getValue() != null)
-                    conf.set(jarg.getName(), jarg.getValue());
-            }
-            
-            for(Object entryO: reduceInst.getConfModifiers().entrySet()){
-                entry = (Map.Entry<String,String>)entryO;
-                conf.set(entry.getKey(),entry.getValue());
-            }
-        }
-
-        /** Build the Job **/
-
-        DistributedCache.createSymlink(conf);
-
-        Job job = new Job(conf);
-
-        job.setMapperClass(mapperClass);
-        Class moutputKeyClass = mapInst.getOutputKeyClass();
-        Class moutputValClass = mapInst.getOutputValueClass();
-        if(moutputKeyClass != null){
-            job.setMapOutputKeyClass(moutputKeyClass);
-            job.setOutputKeyClass(moutputKeyClass);
-        }
-        if(moutputValClass != null){
-            job.setMapOutputValueClass(moutputValClass);
-            job.setOutputValueClass(moutputValClass);
-        }
-        if (mapInst.getCombinerClass() != null)
-            job.setCombinerClass(mapInst.getCombinerClass());
-
-        job.setInputFormatClass(mapInst.getInputFormat());
-        job.setOutputFormatClass(SequenceFileOutputFormat.class);
-        SequenceFileInputFormat.setInputPaths(job, in_arg.getValue());
-        SequenceFileOutputFormat.setOutputPath(job, new Path(out_arg.getValue()));
-
-        if (reduceInst != null) {
-            if (reduceInst.getGrouperClass() != null)
-                job.setGroupingComparatorClass(reduceInst.getGrouperClass());
-            if (reduceInst.getPartitionerClass() != null)
-                job.setPartitionerClass(reduceInst.getPartitionerClass());
-            job.setReducerClass(reducerClass);
-            Class reduceOutClass =reduceInst.getOutputKeyClass();
-            if(null == reduceOutClass)
-                job.setOutputKeyClass(mapInst.getOutputKeyClass());
-            else
-                job.setOutputKeyClass(reduceOutClass);
-            job.setOutputValueClass(reduceInst.getOutputValueClass());
-        } else {
-            job.setNumReduceTasks(0);
-        }
-        job.setJarByClass(JnomicsMain.class);
-        job.setJobName(mapInst.toString());
-
         return job.waitForCompletion(true) ? 0 : 1;
     }
 

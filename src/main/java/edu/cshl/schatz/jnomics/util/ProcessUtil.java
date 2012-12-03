@@ -18,7 +18,9 @@ public class ProcessUtil {
 
     public static int runCommand(final Command command) throws Exception {
 
-        final Process process = Runtime.getRuntime().exec(command.getCommand());
+        //execute with bash
+        final Process process = Runtime.getRuntime().exec(
+                new String[]{"/bin/bash", "-c", command.getCommand()});
         
         Thread pinThread = new Thread(new Runnable() {
             @Override
