@@ -46,6 +46,7 @@ public class JnomicsMain extends Configured implements Tool {
                     put("textcountreadcorrected_map", TextCountReadCorrectedMap.class);
                     put("customreadkmerfilter_map", CustomReadKmerFilterMap.class);
                     put("blast_map", BlastMap.class);
+                    put("pb_correct_map",PBCorrectMap.class);
                 }
             };
 
@@ -71,6 +72,7 @@ public class JnomicsMain extends Configured implements Tool {
                     put("textkmercounthist_reduce",TextKmerCountHistReduce.class);
                     put("textcountreadcorrected_reduce",TextCountReadCorrectedReduce.class);
                     put("coverage_reduce", CoverageReduce.class);
+                    put("pb_correct_reduce",PBCorrectReduce.class);
                 }
             };
 

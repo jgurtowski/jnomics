@@ -36,7 +36,7 @@ public class PBCorrectMap extends JnomicsMapper<Text, NullWritable, Text, Text> 
         }
 
         read_name.set(arr[1]);
-        read_alignment.set(arr[12]);
+        read_alignment.set(arr[8]+","+arr[9]+","+arr[12]);
 
         context.write(read_name,read_alignment);
     }

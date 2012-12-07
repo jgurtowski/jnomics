@@ -33,4 +33,21 @@ public class Nucleotide {
         return new String(reverseComplement(in.getBytes(),0,in.length()));
     }
 
+    /**
+     * Does not reverse, only complements
+     * @param in string to comlement
+     * @return complemented string
+     */
+    public static String complement(String in){
+        StringBuilder builder = new StringBuilder();
+        for(int i =0 ; i< in.length(); i++){
+            builder.append(reverseComplementCharMap[Nucleotide.charMap[(byte)in.charAt(i)]]);
+        }
+        return builder.toString();
+    }
+    
+    public static char complement(char in){
+        return reverseComplementCharMap[Nucleotide.charMap[(byte)in]];
+    }
+
 }
