@@ -11,6 +11,7 @@ import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.WritableComparator;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.mapreduce.Partitioner;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import java.io.BufferedWriter;
@@ -25,11 +26,9 @@ import java.util.Map;
 public class AlignmentSortReduce
         extends JnomicsReducer <SamtoolsMap.SamtoolsKey,SAMRecordWritable,NullWritable,NullWritable> {
 
-    private static final String _OP_DIR_ = "mapred.output.dir";
     public static final String UNMAPPED = "UNMAPPED";
     
     private FileSystem ipFs;
-    private String opDir;
 
     @Override
     public Class getOutputKeyClass() {
@@ -52,22 +51,12 @@ public class AlignmentSortReduce
     }
 
     @Override
-    public Map<String,String> getConfModifiers(){
-        return new HashMap<String, String>(){
-            {
-                put("mapred.reduce.tasks.speculative.execution","false");
-            }
-        };
-    }
-
-    @Override
     public JnomicsArgument[] getArgs() {
         return new JnomicsArgument[0];  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     protected void setup( Context context ) throws IOException, InterruptedException {
         Configuration conf = context.getConfiguration();
-        opDir = conf.get( _OP_DIR_ );
         ipFs = FileSystem.get( conf );
     }
 
@@ -79,7 +68,7 @@ public class AlignmentSortReduce
         String chr = key.getRef().toString();
         if(chr.startsWith("*"))
             chr = UNMAPPED;
-        Path outPath = new Path(opDir,chr+"-"+key.getBin());
+        Path outPath = FileOutputFormat.getPathForWorkFile(context,new String(chr+"-"+key.getBin()),"");
         
         SequenceFile.Writer writer = null;
         if(conf.get("mapred.output.compress","").compareTo("true") == 0){

@@ -3,6 +3,7 @@ package edu.cshl.schatz.jnomics.tools;
 import edu.cshl.schatz.jnomics.cli.JnomicsArgument;
 import edu.cshl.schatz.jnomics.io.FastaParser;
 import edu.cshl.schatz.jnomics.mapreduce.JnomicsReducer;
+import edu.cshl.schatz.jnomics.mapreduce.PacbioCorrectorCounter;
 import edu.cshl.schatz.jnomics.util.Command;
 import edu.cshl.schatz.jnomics.util.DefaultInputStreamHandler;
 import edu.cshl.schatz.jnomics.util.InputStreamHandler;
@@ -12,11 +13,15 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Counter;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * User: james
@@ -31,10 +36,9 @@ public class PBCorrectReduce extends JnomicsReducer<Text,Text,Text,Text>{
     private Text correctedTitle = new Text();
     private Text correctedSequence = new Text();
 
-    private PacbioCorrector pbCorrector = new PacbioCorrector();
-
     private FSDataOutputStream pileupOut;
 
+    private FileSystem fs;
 
     @Override
     public JnomicsArgument[] getArgs() {
@@ -86,10 +90,9 @@ public class PBCorrectReduce extends JnomicsReducer<Text,Text,Text,Text>{
         if(!new File(blastdbcmd).exists())
             throw new IOException("Could not find blastdbcmd binary : " + blastdbcmd);
 
-        FileSystem fs = FileSystem.get(conf);
         String task_attempt = context.getTaskAttemptID().toString();
-        String outputDir = conf.get("marped.output.dir");
-        pileupOut = fs.create(new Path(outputDir, "_" + task_attempt + ".pileups"));
+        fs = FileSystem.get(conf);
+        pileupOut = fs.create(FileOutputFormat.getPathForWorkFile(context,"_"+task_attempt,".pileups"));
     }
 
     @Override
@@ -99,7 +102,8 @@ public class PBCorrectReduce extends JnomicsReducer<Text,Text,Text,Text>{
         String title = pb_sequence.getName();
         String sequence = pb_sequence.getSequence();
 
-        PacbioCorrector.PBCorrectionResult correctionResult = new PacbioCorrector.PBCorrectionResult(sequence);
+        PacbioCorrector.PBCorrectionResult correctionResult = new PacbioCorrector.PBCorrectionResult(sequence,
+                new int[]{1,5,20,100});
 
         PacbioCorrector.correct(sequence,new Iterable<PacbioCorrector.PBBlastAlignment>() {
             @Override
@@ -130,11 +134,26 @@ public class PBCorrectReduce extends JnomicsReducer<Text,Text,Text,Text>{
             }
         },correctionResult);
 
-        /*try {
-            correctionResult.getPileup().printPileup(sequence,pileupOut);
+        PacbioCorrector.PBCorrectionResult.PBBaseCoverageStatistics stats = correctionResult.getCoverageStatistics();
+
+        Counter c_one = context.getCounter(PacbioCorrectorCounter.CoverageStatistics.BASES_AT_LEAST_ONE_COVERAGE);
+        Counter c_five = context.getCounter(PacbioCorrectorCounter.CoverageStatistics.BASES_AT_LEAST_FIVE_COVERAGE);
+        Counter c_twenty = context.getCounter(PacbioCorrectorCounter.CoverageStatistics.BASES_AT_LEAST_TWENTY_COVERAGE);
+        Counter c_hundred = context.getCounter(PacbioCorrectorCounter.CoverageStatistics.BASES_AT_LEAST_HUNDRED_COVERAGE);
+        Counter c_total = context.getCounter(PacbioCorrectorCounter.CoverageStatistics.TOTAL_BASES);
+        c_total.increment(stats.getTotalDatum());
+        c_one.increment(stats.getCountForBin(1));
+        c_five.increment(stats.getCountForBin(5));
+        c_twenty.increment(stats.getCountForBin(20));
+        c_hundred.increment(stats.getCountForBin(100));
+
+        try {
+            pileupOut.write(new String(">" + title +"\n").getBytes());
+            correctionResult.getPileup().printPileup(sequence, pileupOut);
+            pileupOut.write("\n\n".getBytes());
         } catch (Exception e) {
             throw new IOException(e);
-        } */
+        }
 
         correctedTitle.set(title);
         correctedSequence.set(correctionResult.getCorrectedRead());

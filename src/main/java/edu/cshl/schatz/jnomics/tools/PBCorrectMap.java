@@ -35,10 +35,15 @@ public class PBCorrectMap extends JnomicsMapper<Text, NullWritable, Text, Text> 
             return;
         }
 
-        read_name.set(arr[1]);
-        read_alignment.set(arr[8]+","+arr[9]+","+arr[12]);
+        int alignment_start = Integer.parseInt(arr[8]);
+        int alignment_end = Integer.parseInt(arr[9]);
 
-        context.write(read_name,read_alignment);
+        //only use alignments greater than 20bp
+        if(Math.abs(alignment_end - alignment_start) > 20){
+            read_name.set(arr[1]);
+            read_alignment.set(arr[8]+","+arr[9]+","+arr[12]);
+            context.write(read_name,read_alignment);
+        }
     }
     
 }

@@ -114,14 +114,67 @@ public class PacbioCorrector {
 
     public static class PBCorrectionResult{
 
+        public static class PBBaseCoverageStatistics{
+            
+            private final HashMap<Integer,Long> coverageHash = new HashMap<Integer, Long>();
+
+            private int totalDatum;
+
+            private int[] coverage_bins;
+            
+            public PBBaseCoverageStatistics(int []bins){
+                coverage_bins = bins;
+                reset();
+            }
+            
+            /**
+             * Record the coverage for a base
+             * @param coverage - the current coverage
+             */
+            public void insertDatum(int coverage){
+                totalDatum += 1;
+                for(Integer k : coverageHash.keySet()){
+                    if(coverage >= k)
+                        coverageHash.put(k,coverageHash.get(k) + 1);
+                }
+            }
+
+            public void reset(){
+                coverageHash.clear();
+                for(int i=0;i<coverage_bins.length;i++){
+                    coverageHash.put(coverage_bins[i],new Long(0));
+                }
+                totalDatum = 0;
+            }
+
+            public int getTotalDatum(){
+                return totalDatum;
+            }
+            
+            public long getCountForBin(int bin){
+                return coverageHash.get(bin);
+            }
+        }
+
         private PBPileup pileup = new PBPileup(0);
         //{Position: {deletion:count}}
         private HashMap<Integer,HashMap<String,Integer>> deletiondb = new HashMap<Integer, HashMap<String, Integer>>();
 
         private String original_read, corrected_read;
+
+        private PBBaseCoverageStatistics coverageStats;
+
+        /**
+         * @param original_read - original read
+         * @param coverage_stat_bins - array of bins that will be used to aggregate coverage
+         */
+        public PBCorrectionResult(String original_read, int[] coverage_stat_bins){
+            coverageStats = new PBBaseCoverageStatistics(coverage_stat_bins);
+            reset(original_read);
+        }
         
         public PBCorrectionResult(String original_read){
-            reset(original_read);
+            this(original_read,new int[0]);
         }
 
         /**
@@ -131,6 +184,7 @@ public class PacbioCorrector {
         public void reset(String original_read){
             pileup.reset(original_read.length());
             deletiondb.clear();
+            coverageStats.reset();
             this.original_read = original_read;
         }
 
@@ -154,6 +208,22 @@ public class PacbioCorrector {
             this.corrected_read = correctedRead;
         }
 
+        /**
+         * Get the coverage statistics for this read
+         * @return Coverage statistics for the read
+         */
+        public PBBaseCoverageStatistics getCoverageStatistics(){
+            if(coverageStats.getTotalDatum() == 0){
+                for(int i=0; i<pileup.size(); i++){
+                    int total = 0;
+                    for(Integer cnt: pileup.get(i).values()){
+                        total += cnt;
+                    }
+                    coverageStats.insertDatum(total);
+                }
+            }
+            return coverageStats;
+        }
     }
     
     private static final Character MATCH_CHAR = ',';
