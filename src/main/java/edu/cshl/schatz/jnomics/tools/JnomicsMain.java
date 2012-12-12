@@ -62,9 +62,7 @@ public class JnomicsMain extends Configured implements Tool {
                     put("cufflinks_reduce",CufflinksReduce.class);
                     put("seloader_reduce",SELoaderReduce.class);
                     //put("gatk_realign_reduce", GATKRealignReduce.class);
-                    put("gatk_call_reduce", GATKCallVarReduce.class);
-                    put("gatk_countcovariates_reduce", GATKCountCovariatesReduce.class);
-                    put("gatk_recalibrate_reduce", GATKRecalibrateReduce.class);
+                    put("gatk_unified_genotyper", GATKUnifiedGenotyper.class);
                     put("kcounterhist_reduce",KCounterHistReduce.class);
                     //put("httploader_reduce", HttpLoaderReduce.class);
                     put("readfilesplit_reduce", ReadFileSplitReduce.class);
@@ -94,6 +92,7 @@ public class JnomicsMain extends Configured implements Tool {
         //System.out.println("helper-task\t:\tRun helper task");
         System.out.println("loader-pe\t:\tLoad paired end sequencing file into hdfs");
         System.out.println("loader-se\t:\tLoad single end sequencing file into hdfs");
+        System.out.println("fasta-loader\t:\t Load fasta file");
         System.out.println("hdfs-stream\t:\tStream data to hdfs");
         System.out.println("alignment-extract\t:\textract alignments");
         System.out.println("manifest-loader\t:\tLoad manifest file into hdfs");
@@ -122,6 +121,8 @@ public class JnomicsMain extends Configured implements Tool {
             PairedEndLoader.main(Arrays.copyOfRange(args, 1, args.length));
         } else if (args[0].compareTo("loader-se") == 0){
             SingleEndLoader.main(Arrays.copyOfRange(args,1,args.length));
+        }else if(args[0].compareTo("fasta-loader") ==0){
+            FastaLoader.main(Arrays.copyOfRange(args,1,args.length));
         }else if (args[0].compareTo("hdfs-stream") ==0){
             StreamFileToHDFS.main(Arrays.copyOfRange(args,1,args.length));
         } else if (args[0].compareTo("alignment-extract") ==0){

@@ -1,5 +1,6 @@
 package edu.cshl.schatz.jnomics.io;
 
+import java.io.EOFException;
 import java.io.IOException;
 
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -55,9 +56,9 @@ public class BufferedByteReader {
 	public byte readByte() throws IOException{
 		if(amtOut >= amtInBuf)
 			fill();
-		if(amtInBuf == -1)
-			return -1;
-		return buffer[amtOut++];
+        if(amtInBuf == -1)
+            throw new EOFException("EOF");
+        return buffer[amtOut++];
 	} 
 	
 }

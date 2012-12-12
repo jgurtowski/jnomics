@@ -6,11 +6,15 @@ import edu.cshl.schatz.jnomics.ob.ReadCollectionWritable;
 import edu.cshl.schatz.jnomics.ob.ReadWritable;
 import edu.cshl.schatz.jnomics.util.*;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -34,7 +38,9 @@ public class BlastMap extends JnomicsMapper<ReadCollectionWritable, NullWritable
     private int reads_per_bin;
 
     private int DEFAULT_READS_PER_BIN = 1000;
-    
+
+    private FSDataOutputStream unalignedOut;
+
     
     @Override
     public Class getOutputKeyClass() {
@@ -64,10 +70,14 @@ public class BlastMap extends JnomicsMapper<ReadCollectionWritable, NullWritable
             throw new IOException("Can't find Blast binary: " + blast_binary_str);
 
         //blastn -db -outfmt "6 std btop"
-        blastCmd = String.format("%s -outfmt '6 std btop' -db %s ", blast_binary_str, blast_idx_str);
+        blastCmd = String.format("%s %s -outfmt '6 std btop' -db %s ", blast_binary_str,blast_opts_str,blast_idx_str);
         System.out.println("Running: "+ blastCmd);
         reads = new ArrayList<ReadWritable>();
         reads_per_bin = conf.getInt(reads_per_bin_arg.getName(), DEFAULT_READS_PER_BIN);
+
+        String task_attempt = context.getTaskAttemptID().toString();
+        FileSystem fs = FileSystem.get(conf);
+        unalignedOut = fs.create(FileOutputFormat.getPathForWorkFile(context,"unaligned/"+task_attempt,".unmapped"));
     }
 
     @Override
@@ -116,8 +126,10 @@ public class BlastMap extends JnomicsMapper<ReadCollectionWritable, NullWritable
                     public void handle(InputStream in) {
                         BufferedReader reader = new BufferedReader(new InputStreamReader(in));
                         String line = null;
+                        HashMap<String,Boolean> alignedReads = new HashMap<String, Boolean>();
                         try {
-                            while((line = reader.readLine()) != null){
+                            while(null != (line = reader.readLine())){
+                                alignedReads.put(line.split("\t")[0], true);
                                 blastTabOutput.set(line);
                                 context.progress();
                                 try{
@@ -126,6 +138,16 @@ public class BlastMap extends JnomicsMapper<ReadCollectionWritable, NullWritable
                                     System.err.println("Problem writing to context " + e.toString());
                                 }
                             }
+
+                            //write the unaligned reads to separate file
+                            for(ReadWritable r: reads){
+                                String groomedName = r.getName().toString().split("\\s+")[0];
+                                if(!alignedReads.containsKey(groomedName)){
+                                    unalignedOut.write(r.getFastqString().getBytes());
+                                    unalignedOut.write("\n".getBytes());
+                                }
+                            }
+
                         } catch (IOException e) {
                             System.err.println("Error reading from Blast stdout " + e.toString() );
                         }
@@ -134,5 +156,10 @@ public class BlastMap extends JnomicsMapper<ReadCollectionWritable, NullWritable
                 //blast stderr gets printed to hadoop stderr
                 new DefaultInputStreamHandler(System.err)
         ));
+    }
+
+    @Override
+    protected void cleanup(Context context) throws IOException, InterruptedException {
+        unalignedOut.close();
     }
 }
