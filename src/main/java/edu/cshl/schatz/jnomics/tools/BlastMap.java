@@ -30,17 +30,21 @@ public class BlastMap extends JnomicsMapper<ReadCollectionWritable, NullWritable
     private final JnomicsArgument blast_idx = new JnomicsArgument("blast_index", "blast index",true);
     private final JnomicsArgument blast_binary = new JnomicsArgument("blast_binary", "blast binary",true);
     private final JnomicsArgument reads_per_bin_arg = new JnomicsArgument("reads_per_bin","Number of reads aligned at once", false);
-    
+    private final JnomicsArgument fake_progress_arg = new JnomicsArgument("fake_progress","Fake progress so that it does not time out [true/false]", false);
     
     private Text blastTabOutput = new Text();
 
     private List<ReadWritable> reads;
     private int reads_per_bin;
 
-    private int DEFAULT_READS_PER_BIN = 1000;
+    private static final int DEFAULT_READS_PER_BIN = 1000;
 
+    //interval at which progress is reported
+    private static final int FAKE_PROGRESS_INTERVAL = 30000;
+    
     private FSDataOutputStream unalignedOut;
 
+    private boolean fake_progress;
     
     @Override
     public Class getOutputKeyClass() {
@@ -54,7 +58,8 @@ public class BlastMap extends JnomicsMapper<ReadCollectionWritable, NullWritable
 
     @Override
     public JnomicsArgument[] getArgs(){
-        JnomicsArgument[] newArgs = new JnomicsArgument[]{blast_opts,blast_idx,blast_binary,reads_per_bin_arg};
+        JnomicsArgument[] newArgs = new JnomicsArgument[]{blast_opts,blast_idx,blast_binary,
+                reads_per_bin_arg,fake_progress_arg};
         return newArgs;
     }
 
@@ -68,7 +73,9 @@ public class BlastMap extends JnomicsMapper<ReadCollectionWritable, NullWritable
         String blast_binary_str = conf.get(blast_binary.getName());
         if(!new File(blast_binary_str).exists())
             throw new IOException("Can't find Blast binary: " + blast_binary_str);
-
+        
+        fake_progress = conf.getBoolean(fake_progress_arg.getName(),false);
+        
         //blastn -db -outfmt "6 std btop"
         blastCmd = String.format("%s %s -outfmt '6 std btop' -db %s ", blast_binary_str,blast_opts_str,blast_idx_str);
         System.out.println("Running: "+ blastCmd);
@@ -77,7 +84,7 @@ public class BlastMap extends JnomicsMapper<ReadCollectionWritable, NullWritable
 
         String task_attempt = context.getTaskAttemptID().toString();
         FileSystem fs = FileSystem.get(conf);
-        unalignedOut = fs.create(FileOutputFormat.getPathForWorkFile(context,"unaligned/"+task_attempt,".unmapped"));
+        unalignedOut = fs.create(FileOutputFormat.getPathForWorkFile(context,"_unaligned/"+task_attempt,".unmapped"));
     }
 
     @Override
@@ -98,6 +105,27 @@ public class BlastMap extends JnomicsMapper<ReadCollectionWritable, NullWritable
 
     private void align(final List<ReadWritable> reads, final Context context) throws IOException {
         System.out.println("Aligning " + reads.size() + " reads");
+
+        //spawn a thread to fake progress every FAKE_PROGRESS_INTERVAL
+        Thread t = null;
+        if(fake_progress){
+            t = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while(true){
+                        try {
+                            Thread.sleep(FAKE_PROGRESS_INTERVAL);
+                            context.progress();
+                        } catch (InterruptedException e) {
+                            return;
+                        }
+                    }
+                }
+            });
+            t.start();
+            System.out.println("Starting fake progress at intervals of " + FAKE_PROGRESS_INTERVAL);
+        }
+
         ProcessUtil.runCommandEZ(new Command(blastCmd,
                 //push reads through blast's stdin (fasta format)
                 new OutputStreamHandler() {
@@ -156,6 +184,16 @@ public class BlastMap extends JnomicsMapper<ReadCollectionWritable, NullWritable
                 //blast stderr gets printed to hadoop stderr
                 new DefaultInputStreamHandler(System.err)
         ));
+
+        if(fake_progress){
+            System.out.println("Interrupting fake progress thread");
+            t.interrupt();
+            try {
+                t.join();
+            } catch (InterruptedException e) {
+            }
+            System.out.println("fake progress thread is done");
+        }
     }
 
     @Override

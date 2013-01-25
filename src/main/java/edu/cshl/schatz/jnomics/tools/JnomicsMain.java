@@ -62,7 +62,8 @@ public class JnomicsMain extends Configured implements Tool {
                     put("cufflinks_reduce",CufflinksReduce.class);
                     put("seloader_reduce",SELoaderReduce.class);
                     //put("gatk_realign_reduce", GATKRealignReduce.class);
-                    put("gatk_unified_genotyper", GATKUnifiedGenotyper.class);
+                    put("gatk_unified_genotyper_reduce", GATKUnifiedGenotyper.class);
+                    put("gatk_haplotypecaller_reduce", GATKHaplotypeCaller.class);
                     put("kcounterhist_reduce",KCounterHistReduce.class);
                     //put("httploader_reduce", HttpLoaderReduce.class);
                     put("readfilesplit_reduce", ReadFileSplitReduce.class);
@@ -93,15 +94,26 @@ public class JnomicsMain extends Configured implements Tool {
         System.out.println("loader-pe\t:\tLoad paired end sequencing file into hdfs");
         System.out.println("loader-se\t:\tLoad single end sequencing file into hdfs");
         System.out.println("fasta-loader\t:\t Load fasta file");
-        System.out.println("hdfs-stream\t:\tStream data to hdfs");
+        System.out.println("hdfs-stream\t:\tStream data to hdfs");                     
         System.out.println("alignment-extract\t:\textract alignments");
         System.out.println("manifest-loader\t:\tLoad manifest file into hdfs");
-        System.out.println("vcf_merge\t:\tMerge vcf files");
-        System.out.println("covariate_merge\t:\tMerge GATK Covariate files");
+        System.out.println("vcf-merge\t:\tMerge vcf files");
+        System.out.println("covariate-merge\t:\tMerge GATK Covariate files");
         System.out.println("job\t:\tsubmit a job");
     }
 
     public static void main(String[] args) throws Exception {
+
+        //hack for snappy codec in fat jar
+        //String jar_path = JnomicsMain.class.getProtectionDomain().getCodeSource().getLocation().toString();
+        //System.setProperty("org.xerial.snappy.lib.path", "/tmp");
+        //System.setProperty("org.xerial.snappy.lib.name", "libsnappyjava.so");
+
+        //for(String n :System.getProperties().stringPropertyNames()){
+        //System.out.println(n +" : " +System.getProperty(n));
+        //}
+
+
         if (args.length < 1) {
             printMainMenu();
             System.exit(-1);
@@ -129,9 +141,9 @@ public class JnomicsMain extends Configured implements Tool {
             AlignmentSortExtract.main(Arrays.copyOfRange(args, 1, args.length));
         }else if (args[0].compareTo("manifest-loader") == 0){
             //ManifestLoader.main(Arrays.copyOfRange(args,1,args.length));
-        }else if(args[0].compareTo("vcf_merge") == 0){
+        }else if(args[0].compareTo("vcf-merge") == 0){
             VCFMerge.main(Arrays.copyOfRange(args,1,args.length));
-        }else if(args[0].compareTo("covariate_merge") == 0){
+        }else if(args[0].compareTo("covariate-merge") == 0){
             CovariateMerge.main(Arrays.copyOfRange(args,1,args.length));
         }else if (args[0].compareTo("helper-task-list") == 0) {
             System.out.println("Available Helper Tasks:");

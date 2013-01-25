@@ -6,9 +6,7 @@ import edu.cshl.schatz.jnomics.util.ProcessUtil;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,7 +14,7 @@ import java.io.IOException;
 /**
  * User: james
  */
-public class GATKUnifiedGenotyper extends GATKBaseReduce<NullWritable,NullWritable>{
+public class GATKHaplotypeCaller extends GATKBaseReduce<NullWritable,NullWritable>{
 
     private FileSystem fs;
     @Override
@@ -53,12 +51,12 @@ public class GATKUnifiedGenotyper extends GATKBaseReduce<NullWritable,NullWritab
         File recalBam = getRecalBam();
         File recalFile = getRecalFile();
 
-        /** Unified Genotyper **/
-        System.out.println("Unified Genotyper");
+        /** HaplotypeCaller **/
+        System.out.println("Haplotype Caller");
         String region = key.getRef().toString()+":"+startRange+"-"+endRange;
         File region_vcf = new File(key.getRef() + "-"+key.getBin()+".vcf");
-        String ug_cmd = String.format("java -Xmx%dm -jar %s -T UnifiedGenotyper -R %s -I %s -glm BOTH -L \'%s\' -o \'%s\' -BQSR %s -stand_call_conf 50 -stand_emit_conf 10.0 -minIndelCnt 5 -indelHeterozygosity 0.0001",
-                gatk_jvm_mem, gatk_binary, reference_fa, recalBam,region,region_vcf,recalFile
+        String ug_cmd = String.format("java -Xmx%dm -jar %s -T HaplotypeCaller -R %s -I %s -L \'%s\' -o \'%s\' -BQSR %s --dbsnp %s",
+                gatk_jvm_mem, gatk_binary, reference_fa, recalBam,region,region_vcf,recalFile,dbsnp
         );
         System.out.println(ug_cmd);
         ProcessUtil.runCommandEZ(new Command(ug_cmd));

@@ -82,8 +82,6 @@ public class PBCorrectReduce extends JnomicsReducer<Text,Text,Text,Text>{
         blast_idx = conf.get(blast_idx_arg.getName());
         blastdbcmd = conf.get(blastdb_cmd_arg.getName());
 
-        if(!new File(blast_idx+".nhr").exists())
-            throw new IOException("Could not find blast index : " + blast_idx);
         if(!new File(blastdbcmd).exists())
             throw new IOException("Could not find blastdbcmd binary : " + blastdbcmd);
 

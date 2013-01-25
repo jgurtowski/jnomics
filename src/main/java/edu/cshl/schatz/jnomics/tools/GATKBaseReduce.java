@@ -4,13 +4,13 @@ import edu.cshl.schatz.jnomics.cli.JnomicsArgument;
 import edu.cshl.schatz.jnomics.io.ThreadedStreamConnector;
 import edu.cshl.schatz.jnomics.mapreduce.JnomicsReducer;
 import edu.cshl.schatz.jnomics.ob.SAMRecordWritable;
-import edu.cshl.schatz.jnomics.util.Command;
-import edu.cshl.schatz.jnomics.util.OutputStreamHandler;
-import edu.cshl.schatz.jnomics.util.ProcessUtil;
+import edu.cshl.schatz.jnomics.util.*;
 import net.sf.samtools.SAMSequenceRecord;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.WritableComparator;
 import org.apache.hadoop.mapreduce.Partitioner;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.omg.CORBA.PRIVATE_MEMBER;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,23 +29,26 @@ public abstract class GATKBaseReduce<VALIN,VALOUT>
         extends JnomicsReducer<SamtoolsMap.SamtoolsKey,SAMRecordWritable,VALIN,VALOUT> {
 
     private static Logger logger = LoggerFactory.getLogger(GATKBaseReduce.class);
+    private static int DEFAULT_GATK_MEM = 2040;
 
     private final JnomicsArgument gatk_jar_arg = new JnomicsArgument("gatk_jar","GATK jar file",true);
     private final JnomicsArgument db_snp_arg = new JnomicsArgument("dbsnp", "dbSNP vcf file", true);
     private final JnomicsArgument markduplicates_jar_arg = new JnomicsArgument("markduplicates_jar","MarkDuplicates.jar",true);
     private final JnomicsArgument samtools_bin_arg = new JnomicsArgument("samtools_binary","Samtools binary file",true);
     private final JnomicsArgument reference_fa_arg = new JnomicsArgument("reference_fa", "Reference genome", true);
-
+    private final JnomicsArgument gatk_jvm_memory_arg = new JnomicsArgument("gatk_jvm_mem","Memory (MB) used per GATK task", false);
+    private final JnomicsArgument addreplace_readgroups_jar_arg = new JnomicsArgument("addreplace_readgroup_jar","AddOrReplacereadGroups.jar", true);
     private Map<String,File> binaries = new HashMap<String, File>();
 
-    protected File samtools_binary, reference_fa, gatk_binary, tmpBam, markduplicates_jar,dbsnp;
+    protected File samtools_binary, reference_fa, gatk_binary, tmpBam, markduplicates_jar,dbsnp,alterreadgroups_jar;
 
-    private File recal_bam;
+    private File recal_bam,recal_grp;
 
     private List<File> tmpFiles = new ArrayList<File>();
     
     protected long binsize, startRange, endRange;
-
+    protected int gatk_jvm_mem;
+    
     @Override
     public Class<? extends Partitioner> getPartitionerClass() {
         return SamtoolsReduce.SamtoolsPartitioner.class;
@@ -59,7 +62,7 @@ public abstract class GATKBaseReduce<VALIN,VALOUT>
     @Override
     public JnomicsArgument[] getArgs() {
         return new JnomicsArgument[]{gatk_jar_arg, samtools_bin_arg,reference_fa_arg,
-                markduplicates_jar_arg,db_snp_arg};
+                markduplicates_jar_arg,db_snp_arg, gatk_jvm_memory_arg, addreplace_readgroups_jar_arg};
     }
 
 
@@ -68,7 +71,11 @@ public abstract class GATKBaseReduce<VALIN,VALOUT>
         Configuration conf = context.getConfiguration();
 
         File f = null;
-        for(JnomicsArgument binary_arg : getArgs()){
+        JnomicsArgument[] binary_arguments =  new JnomicsArgument[]{gatk_jar_arg,
+                db_snp_arg,markduplicates_jar_arg, samtools_bin_arg,reference_fa_arg,
+                addreplace_readgroups_jar_arg
+        };
+        for(JnomicsArgument binary_arg : binary_arguments){
             if(!binary_arg.isRequired())
                 continue;
             f =  new File(conf.get(binary_arg.getName(),""));
@@ -82,10 +89,13 @@ public abstract class GATKBaseReduce<VALIN,VALOUT>
         gatk_binary = binaries.get(gatk_jar_arg.getName());
         markduplicates_jar = binaries.get(markduplicates_jar_arg.getName());
         dbsnp = binaries.get(db_snp_arg.getName());
-        
-        binsize = context.getConfiguration().getLong(SamtoolsMap.genome_binsize_arg.getName(),
+        alterreadgroups_jar = binaries.get(addreplace_readgroups_jar_arg.getName());
+
+        binsize = conf.getLong(SamtoolsMap.genome_binsize_arg.getName(),
                 SamtoolsMap.DEFAULT_GENOME_BINSIZE);
 
+        gatk_jvm_mem = conf.getInt(gatk_jvm_memory_arg.getName(),DEFAULT_GATK_MEM); 
+        
         /**Symlink reference_fa to local dir, GATK has locking issues on the .dict file**/
         File local_reference_fa = new File(reference_fa.getName());
         ProcessUtil.runCommandEZ(new Command("ln -s " + reference_fa + " " + local_reference_fa));
@@ -98,6 +108,10 @@ public abstract class GATKBaseReduce<VALIN,VALOUT>
         }
     }
 
+    @Override
+    protected void cleanup(Context context) throws IOException, InterruptedException {
+        removeTempFiles();
+    }
 
     /**
      * Run base operations common to both Haplotypecaller and UnifiedGenotyper
@@ -161,17 +175,29 @@ public abstract class GATKBaseReduce<VALIN,VALOUT>
 
         /**Index Bam**/
         System.out.println("Indexing Bam");
-        ProcessUtil.runCommandEZ(new Command(String.format("%s index %s", samtools_binary, tmpBam)));
+        String ibc = String.format("%s index %s", samtools_binary, tmpBam);
+        ProcessUtil.runCommandEZ(new Command(ibc));
         tmpFiles.add(new File(tmpBam.getAbsolutePath().replace(".bam", ".bai")));
         context.progress(); //we're still alive
 
+        /**Add read group**/
+        System.out.println("Adding Read Group");
+        File rdgrp_file = new File(tmpBam.getAbsolutePath().replace(".bam",".rg.bam"));
+        String rg_cmd= String.format("java -Xmx%dm -jar %s VALIDATION_STRINGENCY=LENIENT INPUT=%s OUTPUT=%s RGLB=%s RGPL=%s RGPU=%s RGSM=%s",
+                gatk_jvm_mem, alterreadgroups_jar, tmpBam, rdgrp_file, "jnomics_lib", "illumina", "jnomics_b","jnomics_sample"
+                );
+        ProcessUtil.runCommandEZ(new Command(rg_cmd));
+        tmpFiles.add(rdgrp_file);
+        context.progress();
+
         /**Mark Duplicates**/
         System.out.println("Marking Duplicates");
-        File tmpBamMD = new File(tmpBam.getAbsolutePath().replace(".bam",".md.bam"));
+        File tmpBamMD = new File(rdgrp_file.getAbsolutePath().replace(".bam",".md.bam"));
         File tmpBamMDBai = new File(tmpBamMD.getAbsolutePath().replace(".bam",".bai"));
-        File tmpMetrics = new File(tmpBamMD,".metrics");
-        String mrkdup_cmd = String.format("java -jar %s INPUT=%s OUTPUT=%s ASSMUME_SORTED=true METRICS_FILE=%s CREATE_INDEX=true VALIDATION_STRINGENCY=LENIENT",
-                markduplicates_jar,tmpBam,tmpBamMD,tmpMetrics);
+        File tmpMetrics = new File(tmpBamMD.getAbsolutePath().replace(".md.bam",".md.bam.metrics"));
+        String mrkdup_cmd = String.format("java -Xmx%dm -jar %s INPUT=%s OUTPUT=%s ASSUME_SORTED=true METRICS_FILE=%s CREATE_INDEX=true VALIDATION_STRINGENCY=LENIENT",
+                gatk_jvm_mem,markduplicates_jar,rdgrp_file,tmpBamMD,tmpMetrics);
+        System.out.println(mrkdup_cmd);
         ProcessUtil.runCommandEZ(new Command(mrkdup_cmd));
         tmpFiles.add(tmpBamMD);
         tmpFiles.add(tmpMetrics);
@@ -180,42 +206,51 @@ public abstract class GATKBaseReduce<VALIN,VALOUT>
 
         /**Realigner Target Creator **/
         System.out.println("Realigner Target Creator");
-        File tmpIntervals = new File(tmpBamMD,".intervals");
-        ProcessUtil.runCommandEZ(new Command(String.format("java -jar %s -T RealignerTargetCreator -R %s -I %s -o %s",
-                gatk_binary, reference_fa, tmpBamMD, tmpIntervals
-        )));
+        File tmpIntervals = new File(tmpBamMD.getAbsolutePath().replace(".md.bam",".md.bam.intervals"));
+        String rtc = String.format("java -Xmx%dm -jar %s -T RealignerTargetCreator -R %s -I %s -o %s",
+                gatk_jvm_mem, gatk_binary, reference_fa, tmpBamMD, tmpIntervals);
+        System.out.println(rtc);
+        ProcessUtil.runCommandEZ(new Command(rtc));
         tmpFiles.add(tmpIntervals);
         context.progress(); //we're still alive
 
         /**Indel Realigner**/
         System.out.println("Indel Realigner");
         File realignBam = new File(tmpBamMD.getAbsolutePath().replace(".bam",".realign.bam"));
-        ProcessUtil.runCommandEZ(
-                new Command(String.format("java -jar %s -T IndelRealigner -R %s -I %s --targetIntervals %s -o %s",
-                        gatk_binary,reference_fa,tmpBamMD, tmpIntervals,realignBam
-                ))
-        );
+        String ir = String.format("java -Xmx%dm -jar %s -T IndelRealigner -R %s -I %s --targetIntervals %s -o %s",
+                gatk_jvm_mem,gatk_binary, reference_fa, tmpBamMD, tmpIntervals, realignBam);
+        System.out.println(ir);
+        
+        ProcessUtil.runCommandEZ(new Command(ir,new InputStreamHandler() {
+            @Override
+            public void handle(InputStream in) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+                //while(true){
+                //needs work to set progress
+                //}
+            }
+        },new DefaultInputStreamHandler(System.err)));
         tmpFiles.add(realignBam);
         context.progress(); //still alive
 
         /**Base Recalibrator**/
         System.out.println("Base Recalibrator");
-        File recal_grp = new File("recal_data.grp");
-        String.format("java -jar %s -T BaseRecalibrator -I %s -R %s -knownSites %s -o %s",
-                gatk_binary, realignBam, reference_fa, dbsnp, recal_grp
+        recal_grp = new File("recal_data.grp");
+        String br = String.format("java -Xmx%dm -jar %s -T BaseRecalibrator -I %s -R %s -knownSites %s -o %s",
+                gatk_jvm_mem,gatk_binary,realignBam, reference_fa, dbsnp, recal_grp
         );
+        ProcessUtil.runCommandEZ(new Command(br));
         tmpFiles.add(recal_grp);
         context.progress(); //still alive
         
         /**Print Reads**/
         System.out.println("Print Reads");
         recal_bam = new File(realignBam.getAbsolutePath().replace(".bam", ".recal.bam"));
-        ProcessUtil.runCommandEZ(new Command(String.format("java -jar %s -T PrintReads -R %s -I %s -BQSR %s -o %s",
-                gatk_binary,reference_fa,realignBam,recal_grp, recal_bam
-        )));
+        String pr = String.format("java -Xmx%dm -jar %s -T PrintReads -R %s -I %s -BQSR %s -o %s",
+                gatk_jvm_mem, gatk_binary, reference_fa, realignBam, recal_grp, recal_bam);
+        ProcessUtil.runCommandEZ(new Command(pr));
         tmpFiles.add(recal_bam);
         context.progress(); //still alive
-
     }
 
     protected void markForDeletion(File f){
@@ -224,6 +259,10 @@ public abstract class GATKBaseReduce<VALIN,VALOUT>
     
     protected File getRecalBam(){
         return recal_bam;
+    }
+    
+    protected File getRecalFile(){
+        return recal_grp;
     }
     
 }

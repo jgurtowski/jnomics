@@ -30,6 +30,10 @@ public class PacbioCorrector {
             this.blastTraceback = blastTraceback;
             this.alignmentEnd = alignmentEnd;
         }
+        
+        public boolean isReverse(){
+            return alignmentStart > alignmentEnd ? true: false;
+        }
 
         public int getAlignmentEnd() {
             return alignmentEnd;
@@ -351,6 +355,12 @@ public class PacbioCorrector {
                         }
                     }
                 }
+            }
+
+            //if there is no coverage on this part of the read, leave it alone
+            if(pup_hash.entrySet().isEmpty()){
+                correctedRead.append(sequence.charAt(i));
+                continue;
             }
 
             //Just fix the other stuff by choosing the max value

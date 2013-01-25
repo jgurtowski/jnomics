@@ -24,6 +24,8 @@ import java.io.IOException;
 public abstract class AlignmentBaseMap
         extends JnomicsMapper<Writable, NullWritable, AlignmentCollectionWritable, NullWritable> {
     
+    private static final int DEFAULT_READS_PER_BIN = 20000;
+    
     private static final JnomicsArgument readsBinArg = new JnomicsArgument("reads_per_bin",
             "Number of reads to align at a time",false);
 
@@ -50,7 +52,7 @@ public abstract class AlignmentBaseMap
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
         Configuration conf = context.getConfiguration();
-        readsPerBin = conf.getInt(readsBinArg.getName(),10000);
+        readsPerBin = conf.getInt(readsBinArg.getName(), DEFAULT_READS_PER_BIN);
         tmpFiles[0] = new File(context.getTaskAttemptID()+".1.fq");
         tmpFiles[1] = new File(context.getTaskAttemptID()+".2.fq");
         FileUtil.markDeleteOnExit(tmpFiles);
