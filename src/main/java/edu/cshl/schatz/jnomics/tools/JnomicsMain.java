@@ -44,9 +44,12 @@ public class JnomicsMain extends Configured implements Tool {
                     put("textkmercount_map", TextKmerCountMap.class);
                     put("textkmercounthist_map",TextKmerCountHistMap.class);
                     put("textcountreadcorrected_map", TextCountReadCorrectedMap.class);
+                    put("textkmercountperread_map",TextKmerCountPerReadMap.class);
                     put("customreadkmerfilter_map", CustomReadKmerFilterMap.class);
                     put("blast_map", BlastMap.class);
                     put("pb_correct_map",PBCorrectMap.class);
+                    put("kcounter_perread_map",KCounterPerReadMap.class);
+                    
                 }
             };
 
