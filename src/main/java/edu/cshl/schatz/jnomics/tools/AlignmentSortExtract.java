@@ -22,6 +22,10 @@ public class AlignmentSortExtract {
 
         FileStatus[] stats = fs.listStatus(in);
 
+        if(null == stats){
+            throw new IOException("Could not find alignments at path: "+ in);
+        }
+
         /** Parse the header for reference ordering **/
         List<String> seqList = new ArrayList<String>();
         SAMRecordWritable record = new SAMRecordWritable();
@@ -48,7 +52,7 @@ public class AlignmentSortExtract {
         for(FileStatus stat: stats){
             name = stat.getPath().getName();
             if(!name.startsWith("_") && !name.startsWith("part-r")){
-                String [] arr = stat.getPath().getName().split("-");
+                String [] arr = name.split("-");
                 if(!seqMap.containsKey(arr[0]))
                     seqMap.put(arr[0],new ArrayList<Integer>());
                 seqMap.get(arr[0]).add(Integer.parseInt(arr[1]));
