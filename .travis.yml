@@ -1,0 +1,11 @@
+language: java
+jdk:
+ - oraclejdk7
+
+script: ./build.py compile
+
+install: ./build.py jar
+
+notifications:
+ email:
+  - gurtowsk@cshl.edu
