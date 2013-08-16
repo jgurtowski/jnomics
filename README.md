@@ -16,18 +16,10 @@ Building
 --------
 
 To Build Jnomics run
- ./build.py compile
+   $> ant
 
-To Build the Jnomics jar file
- ./build.py jar
+A dist/jnomics-*.jar file will be created
 
-A jnomics-*.jar file will be created.
-
-The build script is not very smart,
-if changes to the code are made you will 
-want to run both compile and jar again
-to make sure all changes end up in the
-jar file.
 
 
 More Documentation
