@@ -115,4 +115,5 @@ public class FastaRecordReader extends JnomicsFileRecordReader {
 		return seekToEntry() && readEntry();
 	}		
 }
+
 */
