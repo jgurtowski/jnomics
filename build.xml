@@ -41,7 +41,7 @@
     <mkdir dir="${dist}/lib"/>
 
     <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
-    <jar jarfile="${dist}/jnomics-${DSTAMP}.jar" basedir="${build}"/>
+    <jar jarfile="${dist}/jnomics-0.4.jar" basedir="${build}"/>
   </target>
 
   <target name="clean"
