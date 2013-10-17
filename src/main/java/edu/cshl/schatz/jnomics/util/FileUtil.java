@@ -1,6 +1,8 @@
 package edu.cshl.schatz.jnomics.util;
 
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,6 +10,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -54,6 +57,29 @@ public class FileUtil {
                 f.delete();
         }
     }
+    public static void makefiledirs(String filepath){
+    	File dir = new File(filepath).getParentFile();
+    	dir.mkdirs();
+    	
+    }
+    public static boolean copyFromHdfs(FileSystem fs, List<String> files, String  dest) throws IOException{
+		for(String file :  files ) {
+			File dir = new File(dest + "/" + file).getParentFile();
+			System.out.println(" file is " + file + "dir is " + dir);
+			dir.mkdirs();
+			fs.copyToLocalFile(false,new Path(fs.getHomeDirectory().toString() + "/" + file), new Path(dir.toString()));
+		}
+    	return true;
+    	
+    }
 
+    public static boolean copyToHdfs(FileSystem fs, List<String> files, String  dest) throws IOException{
+		for(String file :  files ) {
+			fs.copyToLocalFile(false,new Path(file) , new Path(fs.getHomeDirectory().toString() + "/" + dest) );
+		}
+    	return true;
+    	
+    }
+    
     
 }
