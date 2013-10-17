@@ -51,7 +51,6 @@ public class CufflinksSuite{
 	private String cufflinks_cmd;
 	private Process process;
 	private static String workingdir;
-	private static String username;
 	private static String jobdirname;
 	private static String userhome ;
 	private static String jobid  = null;
@@ -61,7 +60,6 @@ public class CufflinksSuite{
 		this.conf = conf;
 		try {
 			CufflinksSuite.workingdir = new File(".").getCanonicalPath();
-			username = conf.get("grid.job.name").split("-")[0];
 			jobdirname =  conf.get("grid.output.dir");
 			userhome = System.getProperty("user.home");
 			jobid = System.getenv("JOB_ID");
@@ -140,16 +138,16 @@ public class CufflinksSuite{
 			{
 				fs.copyFromLocalFile(true,new Path(file.getAbsolutePath()),hdfs_job_path );
 			}
-//			if(fs.isDirectory(hdfs_job_path)){
-//				System.out.println("Output Copied to HDFS dir "+ hdfs_job_path);
-//			}else{
-//				System.err.println("Error copying files to HDFS");				
-//			}
+			//			if(fs.isDirectory(hdfs_job_path)){
+			//				System.out.println("Output Copied to HDFS dir "+ hdfs_job_path);
+			//			}else{
+			//				System.err.println("Error copying files to HDFS");				
+			//			}
 			System.out.println(" Cufflinks Process is Complete  ");
 		}catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		return true;
 	}
 
@@ -161,14 +159,14 @@ public class CufflinksSuite{
 		String ref_genome = conf.get("cuffmerge_ref_genome","");
 		String ref_genome_local = new Path(ref_genome).getName();
 		String gtf_file = conf.get("cuffmerge_gtf","");
-		
+
 		BufferedReader reader;
 		File dir = new File(cuffmerge_output_dir);
 		FileOutputStream fout = null;
 		Path hdfs_job_path = new Path(fs.getHomeDirectory().toString());
 		String line = null;
-		List<String> filelist =  new ArrayList<>();
-		
+		List<String> filelist =  new ArrayList<String>();
+
 		try {
 
 			fs.copyToLocalFile(false,new Path(cuffmerge_in), new Path(workingdir));
@@ -222,16 +220,16 @@ public class CufflinksSuite{
 			{
 				fs.copyFromLocalFile(true,new Path(file.getAbsolutePath()),hdfs_job_path );
 			}
-//			if(fs.isDirectory(hdfs_job_path)){
-//				System.out.println("Output Copied to HDFS dir "+ hdfs_job_path);
-//			}else{
-//				System.err.println("Error copying files to HDFS");				
-//			}		
+			//			if(fs.isDirectory(hdfs_job_path)){
+			//				System.out.println("Output Copied to HDFS dir "+ hdfs_job_path);
+			//			}else{
+			//				System.err.println("Error copying files to HDFS");				
+			//			}		
 			System.out.println(" Cuffmerge Process is Complete  ");
 		}catch(Exception e){
 			e.printStackTrace();
 		}
-		
+
 		return true;	
 
 	}
@@ -244,10 +242,10 @@ public class CufflinksSuite{
 		String cuffdiff_opts = conf.get("cuffdiff_opts");
 		String merged_gtf = conf.get("cuffdiff_merged_gtf");
 		String cuffdiff_lbs = conf.get("cuffdiff_condn_labels");
-		
+
 		Path hdfs_job_path = new Path(fs.getHomeDirectory().toString());
 		File dir = new File(workingdir + "/" + cuffdiff_out);
-		
+
 		try {
 			System.out.println("Inside try in cuffdiff ");
 			List<String> cuffdiff_in = Arrays.asList(cuffdiff_input.split(","));
@@ -327,11 +325,11 @@ public class CufflinksSuite{
 			{
 				fs.copyFromLocalFile(true,new Path(file.getAbsolutePath()),hdfs_job_path);
 			}
-//			if(fs.isDirectory(hdfs_job_path)){
-//				System.out.println("Output Copied to path "  +  hdfs_job_path);
-//			}else{
-//				System.err.println("Error copying files to HDFS");				
-//			}	
+			//			if(fs.isDirectory(hdfs_job_path)){
+			//				System.out.println("Output Copied to path "  +  hdfs_job_path);
+			//			}else{
+			//				System.err.println("Error copying files to HDFS");				
+			//			}	
 			System.out.println(" Cuffdiff Process is Complete  ");
 		}catch(IOException e){
 			throw new IOException(e.toString());
@@ -402,11 +400,11 @@ public class CufflinksSuite{
 				System.out.println("file is " + file.getAbsolutePath());
 				fs.copyFromLocalFile(true,new Path(file.getAbsolutePath()),fs.getHomeDirectory());
 			}
-//			if(fs.isDirectory(hdfs_job_path)){
-//				System.out.println("Output Copied to HDFS dir "+ hdfs_job_path);
-//			}else{
-//				System.err.println("Error copying files to HDFS");				
-//			}
+			//			if(fs.isDirectory(hdfs_job_path)){
+			//				System.out.println("Output Copied to HDFS dir "+ hdfs_job_path);
+			//			}else{
+			//				System.err.println("Error copying files to HDFS");				
+			//			}
 			System.out.println(" Cuffcompare Process is Complete  ");
 		}catch(Exception e){
 			e.printStackTrace();
