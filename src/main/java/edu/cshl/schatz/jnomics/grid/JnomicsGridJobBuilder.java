@@ -79,7 +79,7 @@ public class JnomicsGridJobBuilder {
 	}  
 	
 	public JnomicsGridJobBuilder LaunchGridJob(Configuration conf) throws Exception{
-		String scriptfile = new File( new File(".").getAbsolutePath() + "/safe_bin/GridJobLauncher.sh" ).getAbsolutePath();
+		String scriptfile = new File( new File(".").getAbsolutePath() + "/bin/GridJobLauncher.sh" ).getAbsolutePath();
 		String workingdir = conf.get("grid_working_dir");
 		String jobname = conf.get("grid.job.name");
 		SessionFactory factory = SessionFactory.getFactory();
