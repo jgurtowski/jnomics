@@ -39,8 +39,6 @@ public class JnomicsGridJobBuilder {
 
 	public JnomicsGridJobBuilder(Configuration conf){
 		this.conf = conf;
-		conf.set("hdfs-conf-path","/etc/hadoop/conf");
-		conf.set("this.is.test","SUCCESSFUL");
 		returnCode.put(0, "UNDETERMINED");
 		returnCode.put(16, "QUEUED_ACTIVE");
 		returnCode.put(17, "SYSTEM_ON_HOLD");
@@ -80,71 +78,8 @@ public class JnomicsGridJobBuilder {
 		return this;
 	}  
 	
-//	public JnomicsGridJobBuilder scriptCommandbuilder(){
-//		String hdfs_conf = conf.get("hdfs-conf-path");
-//		System.out.println("hdfs_conf is " + hdfs_conf );
-//		//		String jarfile = conf.get("mapred.jar");   ///change this configuration
-//		String jarfile = conf.get("grid_jar_file");
-//		String classpath = conf.get("grid_class_path");
-//		String functionname =  conf.get("calling_function");
-//		//String args = conf.get("tophat_align_opts");
-//		System.out.println("Commandbuilder Conf is " + conf.get("this.is.test"));
-//		System.out.println("Inside Command builder" + jarfile + " " +  classpath);
-//		String command = String.format("$HOME/sources/jdk1.7.0_25/bin/java -cp %s:%s:%s %s ",hdfs_conf,jarfile,classpath,functionname);
-//		conf.set("grid_script_command", command);
-//		System.out.println("Scriptcommand builder Conf is " + conf.get("grid_script_command"));
-//		return this;
-//	}
-
-//	public JnomicsGridJobBuilder createjobScript() throws Exception {
-//		System.out.println("createjobScript Conf is " + conf.get("this.is.test"));
-//		String jobname = conf.get("grid.job.name");
-//		String command = conf.get("grid_script_command");
-//		String workingdir = conf.get("grid_working_dir");
-//		File scriptfile  = new File(System.getProperty("user.home") + "/" + jobname  + ".sh");
-//		String usrhome = System.getProperty("user.home");
-//		String line = null;
-//		if(scriptfile.canWrite()) {
-//			System.out.println("I can write into the file");
-//		}
-//		PrintWriter pw = null;
-//		try {
-//			//reader  = new BufferedReader(new FileReader(Templatescript));
-//			pw = new PrintWriter(new FileWriter(scriptfile));
-//			//while((line = reader.readLine()) != null) {
-//			//	pw.println(line);
-//			//}
-//			pw.println("#!/bin/sh");
-//			pw.println("#$ -S /bin/sh");
-//			pw.println("#$ -N "+ jobname);
-//			pw.println("source $HOME/.bashrc");
-//			if(!workingdir.isEmpty()){
-//				pw.println("temp=" + usrhome + "/" + workingdir);
-//				if(!new File(usrhome + "/"+ workingdir).exists()){
-//					pw.println("mkdir " + usrhome + "/" + workingdir);
-//				}
-//				pw.println("cd " + usrhome + "/" + workingdir);
-//			}else {
-//				pw.println("temp=$TMPDIR");
-//				pw.println("cd $TMPDIR");
-//			}
-//			pw.println(command);
-//			//pw.println(command + " $temp");
-//			//pw.println("cd " +  workingdir);	
-//
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}finally{
-//		//	reader.close();
-//			pw.close();
-//		}
-//		scriptfile.setExecutable(true);
-//		conf.set("grid_script_file",scriptfile.getAbsolutePath());
-//		return this;
-//	}
-	
 	public JnomicsGridJobBuilder LaunchGridJob(Configuration conf) throws Exception{
-		String scriptfile = new File( new File(".").getAbsolutePath() + "/safe_bin/kbasetest.sh" ).getAbsolutePath();
+		String scriptfile = new File( new File(".").getAbsolutePath() + "/bin/kbasetest.sh" ).getAbsolutePath();
 		String workingdir = conf.get("grid_working_dir");
 		String jobname = conf.get("grid.job.name");
 		SessionFactory factory = SessionFactory.getFactory();
