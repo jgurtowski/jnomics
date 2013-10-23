@@ -70,13 +70,13 @@ public class GridJobMain extends Configured implements Tool {
 			URI hdfs_uri = new URI(conf.get("fs.default.name"));
 			fs1 = FileSystem.get(hdfs_uri,conf,username);
 			if(gridJob.matches(".*-tophat-.*")){
-				System.out.println("I m entering this if loop tophat");
+				System.out.println("Executing  tophat");
 				alignTophat tophat = new alignTophat(conf);
 				tophat.Preparebinaries(fs1, conf);
 				tophat.align(fs1, conf);
 				
 			}else { 
-				System.out.println("I m entering this if loop Cufflinks");
+				System.out.println("Executing Cufflinks");
 				CufflinksSuite cuff = new CufflinksSuite(conf);
 				cuff.Preparebinaries(fs1, conf);
 				if(gridJob.matches(".*-cufflinks-.*")){

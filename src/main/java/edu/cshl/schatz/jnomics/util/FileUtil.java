@@ -67,7 +67,9 @@ public class FileUtil {
 			File dir = new File(dest + "/" + file).getParentFile();
 			System.out.println(" file is " + file + "dir is " + dir);
 			dir.mkdirs();
-			fs.copyToLocalFile(false,new Path(fs.getHomeDirectory().toString() + "/" + file), new Path(dir.toString()));
+//			fs.copyToLocalFile(false,new Path(fs.getHomeDirectory().toString() + "/" + file), new Path(dir.toString()));
+			fs.copyToLocalFile(false,new Path("./" + file), new Path(dir.toString()));
+
 		}
     	return true;
     	

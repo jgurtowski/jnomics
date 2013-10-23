@@ -89,6 +89,7 @@ public class CufflinksSuite{
 	}
 
 	public boolean callCufflinks(final FileSystem  fs, Configuration conf1) throws IOException, InterruptedException {
+		System.out.println(" Starting cufflinks process ");
 		String cuff_bam_input = conf.get("grid.input.dir");
 		String infile = new Path(cuff_bam_input).getName();
 		String cufflinks_opts =  conf.get("cufflinks_opts","");
@@ -97,7 +98,9 @@ public class CufflinksSuite{
 		Path hdfs_job_path = new Path(fs.getHomeDirectory().toString());
 		File dir = new File(cuff_output_dir);
 		try{
+			System.out.println(" Copying cufflinks input files ");
 			fs.copyToLocalFile(false,new Path(cuff_bam_input), new Path(workingdir));
+			System.out.println(" cufflinks input files are loaded ");
 			if(new File(workingdir + "/" + cuff_bam_input).isFile()){
 				System.out.println("Input file  : " + cuff_bam_input+ " ");
 			}
@@ -152,6 +155,7 @@ public class CufflinksSuite{
 	}
 
 	public boolean callCuffmerge(final FileSystem fs,Configuration conf2) throws IOException, InterruptedException {
+		System.out.println(" Starting cuffmerge process ");
 		String cuffmerge_output_dir = workingdir + "/" + conf2.get("grid.output.dir","");
 		String cuffmerge_in = conf2.get("grid.input.dir","");
 		String inputfile = new Path(cuffmerge_in).getName();
@@ -168,9 +172,11 @@ public class CufflinksSuite{
 		List<String> filelist =  new ArrayList<String>();
 
 		try {
+			System.out.println(" Copying cuffmege input files ");
 
 			fs.copyToLocalFile(false,new Path(cuffmerge_in), new Path(workingdir));
 			fs.copyToLocalFile(false,new Path(ref_genome), new Path(workingdir));
+			System.out.println(" cuffmerge input files are loaded ");
 			if(new File(workingdir + "/" + inputfile).isFile()){
 				System.out.println("Input file  :" + cuffmerge_in);
 			}
@@ -235,6 +241,8 @@ public class CufflinksSuite{
 	}
 
 	public boolean callCuffdiff(final FileSystem fs, Configuration conf) throws IOException, InterruptedException {
+		System.out.println(" Starting cufflinks process ");
+
 		String[] jobparts = conf.get("grid.job.name").split("-");
 		String cuffdiff_input = conf.get("input_files","");
 		final String cuffdiff_out = conf.get("grid.output.dir","");
@@ -247,15 +255,19 @@ public class CufflinksSuite{
 		File dir = new File(workingdir + "/" + cuffdiff_out);
 
 		try {
-			System.out.println("Inside try in cuffdiff ");
+			System.out.println("Copying cuffdiff input files ");
+
 			List<String> cuffdiff_in = Arrays.asList(cuffdiff_input.split(","));
 			if(!FileUtil.copyFromHdfs(fs,cuffdiff_in, workingdir)){
 				System.err.println("Error in Copying the Cuffdiff Input files "); 
 			}
+
 			String ref = ref_genome.substring(ref_genome.lastIndexOf("/") + 1);
 			String gtf = merged_gtf.substring(merged_gtf.lastIndexOf("/") + 1);
 			fs.copyToLocalFile(false, new Path(merged_gtf), new Path(workingdir));
 			fs.copyToLocalFile(false,new Path(ref_genome),  new Path(workingdir));
+
+			System.out.println(" input files are loaded ");
 
 			FileOutputStream fout = null;
 			if(!dir.exists()){
@@ -337,6 +349,7 @@ public class CufflinksSuite{
 		return true;	
 	}
 	public boolean callCuffcompare(final FileSystem fs,Configuration conf ) throws Exception {
+		System.out.println("Starting cuffcompare process ");
 		String cuffcompare_in = conf.get("grid.input.dir");
 		String infile = new Path(cuffcompare_in).getName();
 		String cuffcompare_opts = conf.get("cuffcompare_opts","");
@@ -350,8 +363,13 @@ public class CufflinksSuite{
 
 		boolean ret;
 		try{
+			System.out.println("copying the input files ");
+
 			fs.copyToLocalFile(false,new Path(cuffcompare_in), new Path(workingdir));
 			fs.copyToLocalFile(false,new Path(ref_gtf), new Path(workingdir));
+			
+			System.out.println(" Input files are loaded  ");
+			
 			if(new File(workingdir + "/" + infile).isFile()){
 				System.out.println("Input file  : " + cuffcompare_in+ " ");
 			}

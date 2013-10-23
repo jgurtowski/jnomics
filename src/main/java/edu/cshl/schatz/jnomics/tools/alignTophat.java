@@ -1,9 +1,12 @@
 package edu.cshl.schatz.jnomics.tools;
 
 import edu.cshl.schatz.jnomics.io.ThreadedStreamConnector;
+import edu.cshl.schatz.jnomics.util.FileUtil;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
@@ -72,13 +75,14 @@ public class alignTophat{
 	}
 	
 	public void align(FileSystem fs2, Configuration  conf1) throws Exception {
-		
+		System.out.println("Starting tophat process");
 		String Tophat_input = conf.get("grid.input.dir");
 		String Tophat_output_dir = workingdir + "/" + conf.get("grid.output.dir","");
 		String ref_genome = conf.get("tophat_ref_genome","");
 		String Tophat_opts = conf.get("tophat_align_opts","");	
 		String genome_file = new Path(ref_genome).getName();
 		String genome = genome_file.replace(".fa", "");
+//		Path hdfs_input_path = new Path(fs2.getUri().toString());
 		Path hdfs_job_path = new Path( fs2.getHomeDirectory().toString());		
 		
 		FileOutputStream fout = null;
@@ -87,10 +91,17 @@ public class alignTophat{
 		if(inputfiles.size() > 1 ) { ispaired = true; }
 		
 		try{
-			for(String line : inputfiles){	
-			fs2.copyToLocalFile(false,new Path(hdfs_job_path + "/" + line), new Path(workingdir));
+			System.out.println("Copying the input files ");
+			if(!FileUtil.copyFromHdfs(fs2, inputfiles,workingdir)){
+				System.err.println("Error loading tophat input files");
 			}
+//			for(String line : inputfiles){	
+//			fs2.copyToLocalFile(false,new Path(hdfs_input_path + "/" + line), new Path(workingdir));
+//			}
 			fs2.copyToLocalFile(false,new Path(ref_genome),new Path(workingdir));
+			
+			System.out.println("Input files are loaded");
+			
 			File dir = new File(Tophat_output_dir);
 			if(!dir.exists()){
 			dir.mkdir();
