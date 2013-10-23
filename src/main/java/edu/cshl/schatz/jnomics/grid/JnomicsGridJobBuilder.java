@@ -11,28 +11,16 @@ import java.util.Properties;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-//unused imports
-//import edu.cshl.schatz.jnomics.cli.JnomicsArgument;
-//import edu.cshl.schatz.jnomics.mapreduce.JnomicsJobBuilder;
-//import edu.cshl.schatz.jnomics.util.TextUtil;
-//import org.apache.commons.lang3.ArrayUtils;
-//import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
-//import org.ggf.drmaa.JobInfo;
-//import org.ggf.drmaa.Version;
-//import java.io.BufferedReader;
-//import java.io.FileReader;
-//import java.io.FileWriter;
-//import java.io.IOException;
-//import java.io.PrintWriter;
-//import java.util.Collections;
-//import java.util.Properties;
+import org.slf4j.LoggerFactory;
+import java.util.Collections;
 
 
 /**
  * User: Sri
  */
 public class JnomicsGridJobBuilder {
+
+    private final org.slf4j.Logger logger = LoggerFactory.getLogger(JnomicsGridJobBuilder.class);
 
 	private Configuration conf = null;
 	List<String> archives = new ArrayList<String>();
@@ -92,7 +80,10 @@ public class JnomicsGridJobBuilder {
 		try {
 			session.init("");
 			jt = session.createJobTemplate();
-			jt.setRemoteCommand(scriptfile+" "+workingdir+":"+jobname);
+			logger.info("Script file: " + scriptfile);
+			jt.setRemoteCommand(scriptfile);
+			jt.setArgs(Collections.singletonList(workingdir+":"+jobname));
+			
 			//jt.setArgs(Collections.singletonList("5"));
 			//jt.setWorkingDirectory(workingdir);
 			//jt.setErrorPath(":" + workingdir);
@@ -100,11 +91,11 @@ public class JnomicsGridJobBuilder {
 			jt.setJobName(jobname);
 			jobId = session.runJob(jt);
 			System.out.println("Jobname is : " + jt.getJobName());
+			session.deleteJobTemplate(jt);
 		}catch(Exception e){
 			throw new Exception();
 		}finally{
-			session.exit();
-
+		    session.exit();
 		}
 		conf.set("grid_jobId",jobId);
 		return this ;
