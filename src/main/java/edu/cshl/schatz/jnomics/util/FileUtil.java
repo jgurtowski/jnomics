@@ -64,11 +64,15 @@ public class FileUtil {
     }
     public static boolean copyFromHdfs(FileSystem fs, List<String> files, String  dest) throws IOException{
 		for(String file :  files ) {
+			logger.info("file in FileUtil is " + file);
 			File dir = new File(dest + "/" + file).getParentFile();
-			System.out.println(" file is " + file + "dir is " + dir);
+			logger.info("dir is " + dir.getAbsolutePath());
+			logger.info(" file is " + file + "dir is " + dir);
+			//if(!dir.exists()){
 			dir.mkdirs();
+			//}
 //			fs.copyToLocalFile(false,new Path(fs.getHomeDirectory().toString() + "/" + file), new Path(dir.toString()));
-			fs.copyToLocalFile(false,new Path(file), new Path(dir.toString()));
+			fs.copyToLocalFile(false,new Path(file), new Path(dir.getAbsolutePath()));
 
 		}
     	return true;
