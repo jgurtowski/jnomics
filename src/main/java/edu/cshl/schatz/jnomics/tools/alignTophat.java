@@ -113,12 +113,14 @@ public class alignTophat{
 			}
 			bowtie_cmd = String.format("%s/%s %s/%s %s",workingdir,Tophat_bin[2],workingdir,genome_file,genome) ;
 			if(!ispaired){	
-				String infile = new Path(inputfiles.get(0)).getName();
+//				String infile = new Path(inputfiles.get(0)).getName();
+				String infile = new Path(inputfiles.get(0)).toString();
 				Tophat_cmd =String.format("%s/%s %s -o %s %s %s/%s",workingdir,Tophat_bin[0], Tophat_opts,Tophat_output_dir,genome,workingdir,infile);
 			}else {
 			StringBuilder sb =  new StringBuilder();
 				for(String in : inputfiles){
-					sb.append(workingdir).append("/").append(new Path(in).getName()).append(" ");
+					sb.append(workingdir).append("/").append(new Path(in).toString()).append(" ");
+//					sb.append(workingdir).append("/").append(new Path(in).getName()).append(" ");
 				}
 				Tophat_cmd =String.format("%s/%s %s -o %s %s %s",workingdir,Tophat_bin[0], Tophat_opts,Tophat_output_dir,genome,sb.toString());
 			}
