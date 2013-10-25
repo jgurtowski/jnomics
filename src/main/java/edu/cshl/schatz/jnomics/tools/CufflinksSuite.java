@@ -68,7 +68,7 @@ public class CufflinksSuite{
 		}
 	}
 
-	protected boolean Preparebinaries(final FileSystem fs, final Configuration conf) throws IOException,InterruptedException {
+	protected boolean prepareBinaries(final FileSystem fs, final Configuration conf) throws IOException,InterruptedException {
 		String cufflinks_binary = conf.get("cufflinks_binary");
 		Path bin_path = new Path(cufflinks_binary);
 		if(!fs.exists(bin_path))

@@ -7,7 +7,6 @@ import org.ggf.drmaa.Session;
 import org.ggf.drmaa.SessionFactory;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Properties;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,9 +67,7 @@ public class JnomicsGridJobBuilder {
 	}  
 	
 	public JnomicsGridJobBuilder LaunchGridJob(Configuration conf) throws Exception{
-		//System.out.println("Property is " + props.getProperty("grid-script-path"));	
 		String scriptfile = new File(conf.get("grid-script-path")).getAbsolutePath();
-   //		String scriptfile = new File( new File(".").getAbsolutePath() + "/safe_bin/GridJobLauncher.sh" ).getAbsolutePath();
 		String workingdir = conf.get("grid_working_dir");
 		String jobname = conf.get("grid.job.name");
 		SessionFactory factory = SessionFactory.getFactory();
@@ -126,18 +123,7 @@ public class JnomicsGridJobBuilder {
 		conf.setInt("mapred.max.split.size",num);
 		return this;
 	}
-
-	/**Returns Arguments that are wanted by the mapper and/or reducer **/
-	//    public JnomicsArgument[] getArgs() throws Exception{
-	//        JnomicsMapper mapperInst = mapper.newInstance();
-	//        JnomicsArgument[] args = mapperInst.getArgs();
-	//        if(null != reducer){
-	//            JnomicsReducer reducerInst = reducer.newInstance();
-	//            args = ArrayUtils.addAll(args, reducerInst.getArgs());
-	//        }
-	//        return args;
-	//    }
-
+	
 	public Configuration getJobConf() throws Exception {
 		return this.conf;
 	}
