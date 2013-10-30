@@ -34,7 +34,7 @@ public class AlignTophat{
 	private boolean ispaired = false;
 	private static String jobid = null;
 
-	private final String[] tophat_bin ={ "tophat" , "bowtie" , "bowtie-build" ,"bowtie-inspect" };
+	private final String[] tophat_bin ={ "tophat" , "bowtie" , "bowtie2-build" ,"bowtie-inspect" };
 
 	public AlignTophat(Configuration conf){
 		this.conf = conf;
@@ -107,14 +107,14 @@ public class AlignTophat{
 			}
 			bowtie_cmd = String.format("%s/%s %s/%s %s",workingdir,tophat_bin[2],workingdir,genome_file,genome) ;
 			if(!ispaired){	
-//				String infile = new Path(inputfiles.get(0)).getName();
-				String infile = new Path(inputfiles.get(0)).toString();
+				String infile = new Path(inputfiles.get(0)).getName();
+//				String infile = new Path(inputfiles.get(0)).toString();
 				tophat_cmd =String.format("%s/%s %s -o %s %s %s/%s",workingdir,tophat_bin[0], tophat_opts,tophat_output_dir,genome,workingdir,infile);
 			}else {
 			StringBuilder sb =  new StringBuilder();
 				for(String in : inputfiles){
-					sb.append(workingdir).append("/").append(new Path(in).toString()).append(" ");
-//					sb.append(workingdir).append("/").append(new Path(in).getName()).append(" ");
+//					sb.append(workingdir).append("/").append(new Path(in).toString()).append(" ");
+					sb.append(workingdir).append("/").append(new Path(in).getName()).append(" ");
 				}
 				tophat_cmd =String.format("%s/%s %s -o %s %s %s",workingdir,tophat_bin[0], tophat_opts,tophat_output_dir,genome,sb.toString());
 			}

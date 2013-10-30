@@ -72,8 +72,10 @@ public class FileUtil {
 			dir.mkdirs();
 			//}
 //			fs.copyToLocalFile(false,new Path(fs.getHomeDirectory().toString() + "/" + file), new Path(dir.toString()));
+			try{
 			fs.copyToLocalFile(false,new Path(file), new Path(dir.getAbsolutePath()));
-
+			}catch(Exception e){
+				throw new IOException(e.toString());			}
 		}
     	return true;
     	
