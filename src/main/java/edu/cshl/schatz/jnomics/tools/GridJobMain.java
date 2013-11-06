@@ -4,6 +4,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
@@ -11,19 +12,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.Tool;
 import org.slf4j.LoggerFactory;
 import edu.cshl.schatz.jnomics.grid.JnomicsGridJobBuilder;
-
-//unused imports
-//import java.util.List;
-//import java.io.FileInputStream;
-//import java.io.IOException;
-//import java.io.InputStream;
-//import java.util.Arrays;
-//import javax.imageio.stream.FileImageInputStream;
-//import org.apache.commons.cli.CommandLine;
-//import org.apache.commons.cli.HelpFormatter;
-//import org.apache.commons.cli.OptionBuilder;
-//import org.apache.commons.cli.Options;
-//import org.apache.commons.cli.ParseException;
 
 public class GridJobMain extends Configured implements Tool {
 
@@ -40,7 +28,9 @@ public class GridJobMain extends Configured implements Tool {
 	};
 
 	public static void main(String[]  args) throws Exception{
+		
 		String jobname = args[0].substring(args[0].lastIndexOf(":") + 1);
+		String jobid = System.getenv("JOB_ID");
 		Configuration conf = new Configuration();
 		File conffile = new File(System.getProperty("user.home")+"/" + jobname + ".xml");
 		logger.info(" args is " + args[0] +" jobname is  " + jobname );
@@ -49,6 +39,7 @@ public class GridJobMain extends Configured implements Tool {
 		}
 		
 		FileSystem fs1 = null;
+//		ShutDownHook hook = null;
 		conf.addResource(new Path(conffile.getAbsolutePath()));
 		String gridJob = conf.get("grid.job.name");
 		String[] jobparts =  conf.get("grid.job.name").split("-");
@@ -57,6 +48,9 @@ public class GridJobMain extends Configured implements Tool {
 		try{
 			URI hdfs_uri = new URI(conf.get("fs.default.name"));
 			fs1 = FileSystem.get(hdfs_uri,conf,username);
+//			hook = new ShutDownHook(fs1,jobid);
+			Runtime runtime = Runtime.getRuntime();
+//			runtime.addShutdownHook(hook);
 			if(gridJob.matches(".*-tophat-.*")){
 				System.out.println("Executing  tophat");
 				AlignTophat tophat = new AlignTophat(conf);
@@ -85,6 +79,7 @@ public class GridJobMain extends Configured implements Tool {
 		}
 
 	}
+	
 	@Override
 	public int run(String[] args) throws Exception {
 		

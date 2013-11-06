@@ -89,5 +89,13 @@ public class FileUtil {
     	
     }
     
-    
+    public static boolean untar(FileSystem fs, String filename, String dest) throws IOException{
+    	try {
+			org.apache.hadoop.fs.FileUtil.unTar(new File(filename),new File(dest));
+			logger.info(" Untaring File :  " + filename + "to dest : " + dest);
+		} catch (Exception e) {
+			throw new IOException(e.toString());
+		}
+		return true;
+    }
 }
