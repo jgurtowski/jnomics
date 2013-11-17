@@ -186,6 +186,7 @@ public class CufflinksSuite{
 				cufflinks_cmd =  String.format("%s/cuffmerge %s -o %s -s %s/%s %s/%s",
 					workingdir, cuffmerge_opts,cuffmerge_output_dir,workingdir,genome,workingdir,inputfile);
 			}else {
+				fs.copyToLocalFile(false,new Path(gtf_file), new Path(workingdir));
 				String gtf = new Path(gtf_file).getName();
 				cufflinks_cmd =  String.format("%s/cuffmerge %s -o %s -g %s/%s -s %s/%s %s/%s",
 						workingdir, cuffmerge_opts,cuffmerge_output_dir,workingdir,gtf,workingdir,genome,workingdir,inputfile);
