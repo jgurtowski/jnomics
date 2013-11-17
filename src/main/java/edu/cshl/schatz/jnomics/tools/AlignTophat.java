@@ -9,6 +9,7 @@ import edu.cshl.schatz.jnomics.util.ProcessUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -41,6 +42,7 @@ public class AlignTophat{
 	private static String jobid = null;
 
 	private final String[] tophat_bin ={ "tophat" , "bowtie" , "bowtie2-build" ,"bowtie-inspect" };
+	private final static org.slf4j.Logger logger = LoggerFactory.getLogger(AlignTophat.class);
 
 	public AlignTophat(Configuration conf){
 		this.conf = conf;
@@ -77,7 +79,7 @@ public class AlignTophat{
 
 	public void align(FileSystem fs2, Configuration  conf1) throws Exception {
 		System.out.println("Starting tophat process");
-		String tophat_input = conf.get("grid.input.dir");
+		String tophat_input = conf.get("grid.input.dir","");
 		final String tophat_output_dir = workingdir + "/" + conf.get("grid.output.dir","");
 		String ref_genome = conf.get("tophat_ref_genome","");
 		String tophat_opts = conf.get("tophat_align_opts","");	
@@ -151,9 +153,10 @@ public class AlignTophat{
 			});
 			for(File file : files)
 			{
+				logger.info("Copying log files to hdfs  : " +  hdfs_job_path+"/"+ file.getName());
 				fs2.copyFromLocalFile(true,new Path(file.getAbsolutePath()),hdfs_job_path);
 			}	
-			System.out.println("Tophat Process is Complete ");
+			logger.info("Tophat Process is Complete ");
 		}catch (Exception e) {
 			throw new Exception(e.toString());
 		}

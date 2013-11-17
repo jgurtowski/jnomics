@@ -2,15 +2,19 @@ package edu.cshl.schatz.jnomics.grid;
 
 import org.apache.hadoop.conf.Configuration;
 import org.ggf.drmaa.DrmaaException;
+import org.ggf.drmaa.JobInfo;
 import org.ggf.drmaa.JobTemplate;
 import org.ggf.drmaa.Session;
 import org.ggf.drmaa.SessionFactory;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.slf4j.LoggerFactory;
+
 import java.util.Collections;
 
 
@@ -74,6 +78,7 @@ public class JnomicsGridJobBuilder {
 		Session session = factory.getSession();
 		JobTemplate jt = null;
 		String jobId = null;
+		//String scontact = null;
 		try {
 			session.init("");
 			jt = session.createJobTemplate();
@@ -88,24 +93,38 @@ public class JnomicsGridJobBuilder {
 			jt.setJobName(jobname);
 			jobId = session.runJob(jt);
 			System.out.println("Jobname is : " + jt.getJobName());
+			//scontact = session.getContact();
 			session.deleteJobTemplate(jt);
 		}catch(Exception e){
 			throw new Exception();
 		}finally{
 		    session.exit();
 		}
+		//conf.set("grid_session",scontact);
 		conf.set("grid_jobId",jobId);
 		return this ;
 	}
 
-	public String getjobstatus(String JobId) throws DrmaaException{
+	public String getjobstatus(String JobId)throws DrmaaException{
+		//,String contact) throws DrmaaException{
 		SessionFactory factory = SessionFactory.getFactory();
 		Session session = factory.getSession();
 		int ret = 0;
+		//JobInfo retval;
 		try {
 			session.init("");
+		//	System.out.println("contact is " + contact);
+		//	session.init(contact);
+		//	System.out.println(session.getContact());
+		//	System.out.println("jobid " + JobId + " finished with exit status ");
+		//	retval = session.wait(JobId,Session.TIMEOUT_NO_WAIT);
+			//System.out.println("jobid " + JobId + " finished with exit status " +  retval.getExitStatus());
+		
 			ret  = session.getJobProgramStatus(JobId);
-
+		//	System.out.println("values is " + Session.UNDETERMINED);
+		//	retval = session.wait(JobId,Session.TIMEOUT_NO_WAIT);
+		//	System.out.println("jobid " + JobId + " finished with exit status " +  retval.getExitStatus());
+			
 		} catch (DrmaaException e) {
 			e.printStackTrace();
 		}finally{

@@ -37,11 +37,12 @@ public class CufflinksSuite{
 	private final static org.slf4j.Logger logger = LoggerFactory.getLogger(CufflinksSuite.class);
 
 	private String cufflinks_cmd;
-	private Process process;
+//	private Process process;
 	private static String workingdir;
 	private static String jobdirname;
 	private static String userhome ;
 	private static String jobid  = null;
+	private static String jobname  = null;
 	private final String[] cuff_bin = {"cufflinks","cuffmerge","cuffdiff","cuffcompare" };
 
 	public CufflinksSuite(Configuration conf) {
@@ -50,6 +51,7 @@ public class CufflinksSuite{
 			CufflinksSuite.workingdir = new File(".").getCanonicalPath();
 			jobdirname =  conf.get("grid.output.dir");
 			userhome = System.getProperty("user.home");
+			jobname= System.getenv("JOB_NAME");
 			jobid = System.getenv("JOB_ID");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -78,7 +80,7 @@ public class CufflinksSuite{
 
 	public boolean callCufflinks(final FileSystem  fs, Configuration conf1) throws IOException, InterruptedException {
 		System.out.println(" Starting cufflinks process ");
-		String cuff_bam_input = conf.get("grid.input.dir");
+		String cuff_bam_input = conf.get("grid.input.dir","");
 		String infile = new Path(cuff_bam_input).getName();
 		String cufflinks_opts =  conf.get("cufflinks_opts","");
 		final String cuff_output_dir = workingdir + "/" + conf.get("grid.output.dir","");
@@ -118,7 +120,7 @@ public class CufflinksSuite{
 			});
 			for(File file : files)
 			{
-				logger.info("Copying log files to hdfs  : " +  hdfs_job_path+"/"+file);
+				logger.info("Copying log files to hdfs  : " +  hdfs_job_path+"/"+ file.getName());
 				fs.copyFromLocalFile(true,new Path(file.getAbsolutePath()),hdfs_job_path );
 			}
 			System.out.println(" Cufflinks Process is Complete  ");
@@ -195,6 +197,7 @@ public class CufflinksSuite{
 			logger.info("Copying Results to hdfs : " +  hdfs_job_path+"/"+cuffmerge_output_dir);
 			fs.copyFromLocalFile(false,new Path(cuffmerge_output_dir) , hdfs_job_path);
 			}
+			
 			File[] files = new File(userhome).listFiles(new FilenameFilter() {
 				@Override
 				public boolean accept(File dir, String name) {
@@ -203,9 +206,10 @@ public class CufflinksSuite{
 			});
 			for(File file : files)
 			{
-				logger.info("Copying log files to hdfs  : " +  hdfs_job_path+"/"+file);
+				logger.info("Copying log files to hdfs  : " +  hdfs_job_path + "/" + file.getName());
 				fs.copyFromLocalFile(true,new Path(file.getAbsolutePath()),hdfs_job_path );
 			}	
+			fs.deleteOnExit(new Path("cuffmerge-"+jobname+".txt"));
 			logger.info(" Cuffmerge Process is Complete  ");
 		}catch(Exception e){
 			e.printStackTrace();
@@ -219,11 +223,11 @@ public class CufflinksSuite{
 		String[] jobparts = conf.get("grid.job.name").split("-");
 		String cuffdiff_input = conf.get("input_files","");
 		String cuffdiff_out = conf.get("grid.output.dir","");
-		String ref_genome = conf.get("cuffdiff_ref_genome");
+		String ref_genome = conf.get("cuffdiff_ref_genome","");
 		String ref_genome_local = new Path(ref_genome).getName();
-		String cuffdiff_opts = conf.get("cuffdiff_opts");
-		String merged_gtf = conf.get("cuffdiff_merged_gtf");
-		String cuffdiff_lbs = conf.get("cuffdiff_condn_labels");
+		String cuffdiff_opts = conf.get("cuffdiff_opts","");
+		String merged_gtf = conf.get("cuffdiff_merged_gtf","");
+		String cuffdiff_lbs = conf.get("cuffdiff_condn_labels","");
 		String genome = null;
 		int ret ;
 		Path hdfs_job_path = new Path(fs.getHomeDirectory().toString());
@@ -281,7 +285,7 @@ public class CufflinksSuite{
 			});
 			for(File file : files)
 			{
-				logger.info("Copying log files to hdfs  : " +  hdfs_job_path+"/"+file);
+				logger.info("Copying log files to hdfs  : " +  hdfs_job_path+"/"+ file.getName());
 				fs.copyFromLocalFile(true,new Path(file.getAbsolutePath()),hdfs_job_path);
 			}
 			logger.info(" Cuffdiff Process is Complete  ");
@@ -290,9 +294,10 @@ public class CufflinksSuite{
 		}
 		return true;	
 	}
+	
 	public boolean callCuffcompare(final FileSystem fs,Configuration conf ) throws Exception {
 		System.out.println("Starting cuffcompare process ");
-		String cuffcompare_in = conf.get("grid.input.dir");
+		String cuffcompare_in = conf.get("grid.input.dir","");
 		String infile = new Path(cuffcompare_in).getName();
 		String cuffcompare_opts = conf.get("cuffcompare_opts","");
 		String ref_gtf = fs.getHomeDirectory().toString() + "/" +conf.get("cuffcompare_gtf","");
@@ -348,9 +353,10 @@ public class CufflinksSuite{
 			
 			for(File file : files)
 			{
-				logger.info("Copying log files to hdfs  : " +  fs.getHomeDirectory()+"/"+file);
+				logger.info("Copying log files to hdfs  : " +  fs.getHomeDirectory() + "/" + file.getName());
 				fs.copyFromLocalFile(true,new Path(file.getAbsolutePath()),fs.getHomeDirectory());
 			}
+			fs.deleteOnExit(new Path("cuffcompare-"+jobname+".txt"));
 			logger.info(" Cuffcompare Process is Complete  ");
 	
 		}catch(Exception e){
