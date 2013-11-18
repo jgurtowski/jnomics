@@ -102,11 +102,12 @@ public class AlignTophat{
 			File [] idxfiles = new File(workingdir).listFiles(new FilenameFilter() {
 				@Override
 				public boolean accept(File dir, String name) {
-					return name.endsWith(".fa");
+					return name.contains(".fa");		 
 				}
 			});
 			for( File index : idxfiles){
-				genome = index.getName().replace(".fa", "");
+				genome = index.getName().substring(0,index.getName().lastIndexOf("."));
+				System.out.println("genome is "  + genome);
 			}
 			System.out.println("Input files are loaded");
 			/* Verifying the output directory*/
@@ -130,13 +131,13 @@ public class AlignTophat{
 				String gtf = new Path(gtf_file).getName();
 				if(!ispaired){	
 					String infile = new Path(inputfiles.get(0)).getName();
-					tophat_cmd =String.format("%s/%s %s -G %s/%s -o %s %s %s/%s",workingdir,tophat_bin[0],workingdir,gtf,tophat_opts,tophat_output_dir,genome,workingdir,infile);
+					tophat_cmd =String.format("%s/%s %s -o %s -G %s/%s %s %s/%s",workingdir,tophat_bin[0],tophat_opts,tophat_output_dir,workingdir,gtf,genome,workingdir,infile);
 				}else {
 					StringBuilder sb =  new StringBuilder();
 					for(String in : inputfiles){
 						sb.append(workingdir).append("/").append(new Path(in).getName()).append(" ");
 					}
-					tophat_cmd =String.format("%s/%s %s -G %s/%s -o %s %s %s",workingdir,tophat_bin[0],workingdir,gtf, tophat_opts,tophat_output_dir,genome,sb.toString());
+					tophat_cmd =String.format("%s/%s %s -o %s -G %s/%s %s %s",workingdir,tophat_bin[0],tophat_opts,tophat_output_dir,workingdir,gtf,genome,sb.toString());
 				}
 			}
 			String cmd1 = tophat_cmd;

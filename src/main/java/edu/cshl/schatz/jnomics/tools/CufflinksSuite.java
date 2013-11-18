@@ -37,7 +37,6 @@ public class CufflinksSuite{
 	private final static org.slf4j.Logger logger = LoggerFactory.getLogger(CufflinksSuite.class);
 
 	private String cufflinks_cmd;
-//	private Process process;
 	private static String workingdir;
 	private static String jobdirname;
 	private static String userhome ;
@@ -83,6 +82,7 @@ public class CufflinksSuite{
 		String cuff_bam_input = conf.get("grid.input.dir","");
 		String infile = new Path(cuff_bam_input).getName();
 		String cufflinks_opts =  conf.get("cufflinks_opts","");
+		String ref_gtf = conf.get("cufflinks_gtf","");
 		final String cuff_output_dir = workingdir + "/" + conf.get("grid.output.dir","");
 		FileOutputStream fout = null;
 		Path hdfs_job_path = new Path(fs.getHomeDirectory().toString());
@@ -91,6 +91,7 @@ public class CufflinksSuite{
 		try{
 			System.out.println(" Copying cufflinks input files ");
 			fs.copyToLocalFile(false,new Path(cuff_bam_input), new Path(workingdir));
+			
 			System.out.println(" cufflinks input files are loaded ");
 			if(new File(workingdir + "/" + cuff_bam_input).isFile()){
 				logger.info("Input file  : " + cuff_bam_input+ " ");
@@ -101,8 +102,13 @@ public class CufflinksSuite{
 			if(dir.isDirectory()){
 				logger.info("Output directory : "+ dir.toString());
 			}
+			if(ref_gtf.isEmpty()){
 			cufflinks_cmd =  String.format("%s/cufflinks %s -o %s %s/%s",workingdir, cufflinks_opts,cuff_output_dir,workingdir,infile);
-			//			Thread connecterr,connectout;
+			}else{
+				fs.copyToLocalFile(false,new Path(ref_gtf), new Path(workingdir));
+				String gtf = new Path(ref_gtf).getName();
+				cufflinks_cmd =  String.format("%s/cufflinks %s -o %s -G %s/%s %s/%s",workingdir, cufflinks_opts,cuff_output_dir,workingdir,gtf,workingdir,infile);
+			}
 			String cmd = cufflinks_cmd;
 			System.out.println("Executing Cufflinks cmd : "+ cmd);
 			ret = ProcessUtil.runCommand(new Command(cufflinks_cmd));
