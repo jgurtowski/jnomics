@@ -31,31 +31,31 @@ public class ShockLoad extends JnomicsMapper<LongWritable, Text,NullWritable,Nul
 
 	public void map(LongWritable key, Text value, Context context) throws IOException {
 		{
-			FSDataInputStream inStream = null;
-			FileSystem fs = FileSystem.get(new Configuration());
-			BasicShockClient base;
-			Path path = new Path(value.toString());
-			String filename = new File(value.toString()).getName();
-			inStream = fs.open(path);
-			int  Length = (int)(fs.getLength(path));
-			byte[] buf = new byte[Length];
-			try{
-				URL mshadoop = new URL("http://mshadoop1.cshl.edu:7546");
-				base = new BasicShockClient(mshadoop);
-				int i = 0;
-				int total = 0;
-				inStream.read(buf);
-				while(-1 != (i = inStream.read(buf))){
-					total += i;
-					//System.err.print("\r"+total+"/"+Length+" " + ((float)total)/Length * 100 + "%");    
-				}
-				ShockNode sn = base.addNode(buf, filename);
-			}		
-			catch(Exception e){
-				throw new IOException(e.getMessage());
-			}
-			inStream.close();
-			fs.close();
+//			FSDataInputStream inStream = null;
+//			FileSystem fs = FileSystem.get(new Configuration());
+//			BasicShockClient base;
+//			Path path = new Path(value.toString());
+//			String filename = new File(value.toString()).getName();
+//			inStream = fs.open(path);
+//			int  Length = (int)(fs.getLength(path));
+//			byte[] buf = new byte[Length];
+//			try{
+//				URL mshadoop = new URL("http://mshadoop1.cshl.edu:7546");
+//				base = new BasicShockClient(mshadoop);
+//				int i = 0;
+//				int total = 0;
+//				inStream.read(buf);
+//				while(-1 != (i = inStream.read(buf))){
+//					total += i;
+//					//System.err.print("\r"+total+"/"+Length+" " + ((float)total)/Length * 100 + "%");    
+//				}
+//				ShockNode sn = base.addNode(buf, filename);
+//			}		
+//			catch(Exception e){
+//				throw new IOException(e.getMessage());
+//			}
+//			inStream.close();
+//			fs.close();
 
 		}
 

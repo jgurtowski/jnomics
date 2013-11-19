@@ -2,12 +2,23 @@ package edu.cshl.schatz.jnomics.grid;
 
 import org.apache.hadoop.conf.Configuration;
 import org.ggf.drmaa.DrmaaException;
-import org.ggf.drmaa.JobInfo;
 import org.ggf.drmaa.JobTemplate;
 import org.ggf.drmaa.Session;
 import org.ggf.drmaa.SessionFactory;
 
+import edu.cshl.schatz.jnomics.io.ThreadedStreamConnector;
+import edu.cshl.schatz.jnomics.util.Command;
+import edu.cshl.schatz.jnomics.util.DefaultOutputStreamHandler;
+import edu.cshl.schatz.jnomics.util.InputStreamHandler;
+import edu.cshl.schatz.jnomics.util.OutputStreamHandler;
+import edu.cshl.schatz.jnomics.util.ProcessUtil;
+
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +34,7 @@ import java.util.Collections;
  */
 public class JnomicsGridJobBuilder {
 
-    private final org.slf4j.Logger logger = LoggerFactory.getLogger(JnomicsGridJobBuilder.class);
+	private final org.slf4j.Logger logger = LoggerFactory.getLogger(JnomicsGridJobBuilder.class);
 
 	private Configuration conf = null;
 	List<String> archives = new ArrayList<String>();
@@ -69,11 +80,12 @@ public class JnomicsGridJobBuilder {
 		conf.set("grid.job.name", name);
 		return this;
 	}  
-	
+
 	public JnomicsGridJobBuilder LaunchGridJob(Configuration conf) throws Exception{
 		String scriptfile = new File(conf.get("grid-script-path")).getAbsolutePath();
 		String workingdir = conf.get("grid_working_dir");
 		String jobname = conf.get("grid.job.name");
+		String slots = conf.get("grid-job-slots","1");
 		SessionFactory factory = SessionFactory.getFactory();
 		Session session = factory.getSession();
 		JobTemplate jt = null;
@@ -85,11 +97,12 @@ public class JnomicsGridJobBuilder {
 			logger.info("Script file: " + scriptfile);
 			jt.setRemoteCommand(scriptfile);
 			jt.setArgs(Collections.singletonList(workingdir+":"+jobname));
-			
+
 			//jt.setArgs(Collections.singletonList("5"));
 			//jt.setWorkingDirectory(workingdir);
 			//jt.setErrorPath(":" + workingdir);
 			//jt.setOutputPath(":" + workingdir);
+			jt.setNativeSpecification("-pe threads "+ slots);
 			jt.setJobName(jobname);
 			jobId = session.runJob(jt);
 			System.out.println("Jobname is : " + jt.getJobName());
@@ -98,7 +111,7 @@ public class JnomicsGridJobBuilder {
 		}catch(Exception e){
 			throw new Exception();
 		}finally{
-		    session.exit();
+			session.exit();
 		}
 		//conf.set("grid_session",scontact);
 		conf.set("grid_jobId",jobId);
@@ -106,29 +119,59 @@ public class JnomicsGridJobBuilder {
 	}
 
 	public String getjobstatus(String JobId)throws DrmaaException{
-		//,String contact) throws DrmaaException{
 		SessionFactory factory = SessionFactory.getFactory();
 		Session session = factory.getSession();
 		int ret = 0;
-		//JobInfo retval;
+		String jobinfo;
+
+		//		OutputStreamHandler jobinfo = null ;
 		try {
 			session.init("");
-		//	System.out.println("contact is " + contact);
-		//	session.init(contact);
-		//	System.out.println(session.getContact());
-		//	System.out.println("jobid " + JobId + " finished with exit status ");
-		//	retval = session.wait(JobId,Session.TIMEOUT_NO_WAIT);
+			//	System.out.println("contact is " + contact);
+			//	session.init(contact);
+			//	System.out.println(session.getContact());
+			//	System.out.println("jobid " + JobId + " finished with exit status ");
+			//	retval = session.wait(JobId,Session.TIMEOUT_NO_WAIT);
 			//System.out.println("jobid " + JobId + " finished with exit status " +  retval.getExitStatus());
-		
+
 			ret  = session.getJobProgramStatus(JobId);
-		//	System.out.println("values is " + Session.UNDETERMINED);
-		//	retval = session.wait(JobId,Session.TIMEOUT_NO_WAIT);
-		//	System.out.println("jobid " + JobId + " finished with exit status " +  retval.getExitStatus());
-			
+			//	System.out.println("values is " + Session.UNDETERMINED);
+			//	retval = session.wait(JobId,Session.TIMEOUT_NO_WAIT);
+			//	System.out.println("jobid " + JobId + " finished with exit status " +  retval.getExitStatus());
+
 		} catch (DrmaaException e) {
-			e.printStackTrace();
+			BufferedReader stdInput = null;
+			BufferedReader stdError = null;
+			try{
+				String[] cmd = {"/bin/sh", "-c","qacct -j "+ JobId.trim() + " | grep exit"};
+				Process p = Runtime.getRuntime().exec(cmd);
+				p.waitFor();
+				stdInput = new BufferedReader(new 
+						InputStreamReader(p.getInputStream()));
+				stdError = new BufferedReader(new 
+						InputStreamReader(p.getErrorStream()));
+				jobinfo = stdInput.readLine();
+				System.out.println(jobinfo);
+				String[] jobstatus = jobinfo.split("  ");
+				System.out.println("String is " + jobstatus[1]);
+				if(jobstatus[1].trim().equals("0")){
+					ret = 48;
+				}else if(jobstatus[1].trim().equals("1")){
+					ret = 64;
+				}
+				stdInput.close();
+				stdError.close();
+				//			ProcessUtil.runCommand(new Command("qacct -j "+ JobId.trim(),new DefaultOutputStreamHandler()))
+				//			System.out.println(jobinfo.toString());
+
+			}catch(Exception ee){
+				ee.printStackTrace();
+			}
+//			e.printStackTrace();
+
 		}finally{
 			session.exit();
+
 		}
 		return returnCode.get(ret);
 	}
@@ -142,7 +185,7 @@ public class JnomicsGridJobBuilder {
 		conf.setInt("mapred.max.split.size",num);
 		return this;
 	}
-	
+
 	public Configuration getJobConf() throws Exception {
 		return this.conf;
 	}

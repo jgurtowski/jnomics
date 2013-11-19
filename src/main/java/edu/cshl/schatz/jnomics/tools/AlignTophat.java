@@ -156,7 +156,21 @@ public class AlignTophat{
 			{
 				logger.info("Copying log files to hdfs  : " +  hdfs_job_path+"/"+ file.getName());
 				fs2.copyFromLocalFile(true,new Path(file.getAbsolutePath()),hdfs_job_path);
-			}	
+			}
+			File[] pfiles = new File(userhome).listFiles(new FilenameFilter() {
+				@Override
+				public boolean accept(File dir, String name) {
+					return name.matches(".*-tophat-.*[.]p."+jobid.toString());
+				}
+			});
+			logger.info("getting here in tophat");
+			for(File file : pfiles)
+			{
+				logger.info("Deleting file" + file.getAbsolutePath() );
+				file.delete();		
+			}
+			
+			
 			logger.info("Tophat Process is Complete ");
 		}catch (Exception e) {
 			throw new Exception(e.toString());
