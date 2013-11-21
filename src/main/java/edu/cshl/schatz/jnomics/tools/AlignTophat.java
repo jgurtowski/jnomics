@@ -146,7 +146,7 @@ public class AlignTophat{
 			if(ret == 0 ){
 				fs2.copyFromLocalFile(false,new Path(tophat_output_dir), hdfs_job_path);
 			}
-			File[] files = new File(userhome).listFiles(new FilenameFilter() {
+			/*File[] files = new File(userhome).listFiles(new FilenameFilter() {
 				@Override
 				public boolean accept(File dir, String name) {
 					return name.matches(".*-tophat-.*[.]."+jobid);
@@ -169,7 +169,7 @@ public class AlignTophat{
 				logger.info("Deleting file" + file.getAbsolutePath() );
 				file.delete();		
 			}
-			
+			*/
 			
 			logger.info("Tophat Process is Complete ");
 		}catch (Exception e) {

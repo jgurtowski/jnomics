@@ -97,12 +97,12 @@ public class JnomicsGridJobBuilder {
 			logger.info("Script file: " + scriptfile);
 			jt.setRemoteCommand(scriptfile);
 			jt.setArgs(Collections.singletonList(workingdir+":"+jobname));
-
 			//jt.setArgs(Collections.singletonList("5"));
 			//jt.setWorkingDirectory(workingdir);
 			//jt.setErrorPath(":" + workingdir);
 			//jt.setOutputPath(":" + workingdir);
 			jt.setNativeSpecification("-pe threads "+ slots);
+			jt.setNativeSpecification("-j y");
 			jt.setJobName(jobname);
 			jobId = session.runJob(jt);
 			System.out.println("Jobname is : " + jt.getJobName());
@@ -123,8 +123,6 @@ public class JnomicsGridJobBuilder {
 		Session session = factory.getSession();
 		int ret = 0;
 		String jobinfo;
-
-		//		OutputStreamHandler jobinfo = null ;
 		try {
 			session.init("");
 			//	System.out.println("contact is " + contact);
@@ -133,16 +131,15 @@ public class JnomicsGridJobBuilder {
 			//	System.out.println("jobid " + JobId + " finished with exit status ");
 			//	retval = session.wait(JobId,Session.TIMEOUT_NO_WAIT);
 			//System.out.println("jobid " + JobId + " finished with exit status " +  retval.getExitStatus());
-
 			ret  = session.getJobProgramStatus(JobId);
 			//	System.out.println("values is " + Session.UNDETERMINED);
 			//	retval = session.wait(JobId,Session.TIMEOUT_NO_WAIT);
 			//	System.out.println("jobid " + JobId + " finished with exit status " +  retval.getExitStatus());
-
 		} catch (DrmaaException e) {
 			BufferedReader stdInput = null;
 			BufferedReader stdError = null;
 			try{
+				Thread.sleep(1000);
 				String[] cmd = {"/bin/sh", "-c","qacct -j "+ JobId.trim() + " | grep exit"};
 				Process p = Runtime.getRuntime().exec(cmd);
 				p.waitFor();
@@ -151,9 +148,9 @@ public class JnomicsGridJobBuilder {
 				stdError = new BufferedReader(new 
 						InputStreamReader(p.getErrorStream()));
 				jobinfo = stdInput.readLine();
-				System.out.println(jobinfo);
+				//System.out.println(jobinfo);
 				String[] jobstatus = jobinfo.split("  ");
-				System.out.println("String is " + jobstatus[1]);
+				//System.out.println("String is " + jobstatus[1]);
 				if(jobstatus[1].trim().equals("0")){
 					ret = 48;
 				}else if(jobstatus[1].trim().equals("1")){
@@ -167,8 +164,6 @@ public class JnomicsGridJobBuilder {
 			}catch(Exception ee){
 				ee.printStackTrace();
 			}
-//			e.printStackTrace();
-
 		}finally{
 			session.exit();
 
