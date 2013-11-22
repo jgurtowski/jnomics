@@ -80,14 +80,16 @@ public class AlignTophat{
 	public void align(FileSystem fs2, Configuration  conf1) throws Exception {
 		System.out.println("Starting tophat process");
 		String tophat_input = conf.get("grid.input.dir","");
-		final String tophat_output_dir = workingdir + "/" + conf.get("grid.output.dir","");
+		final String tophat_output_dir = conf.get("grid.output.dir","");
 		String ref_genome = conf.get("tophat_ref_genome","");
 		String tophat_opts = conf.get("tophat_align_opts","");	
 		String gtf_file = conf.get("tophat_gtf","");
 		String genome_file = new Path(ref_genome).getName();
 		String genome = null;
+		//String output = conf.get("grid.output.dir","");
 		int ret ;
-		Path hdfs_job_path = new Path( fs2.getHomeDirectory().toString());		
+		Path hdfs_job_path = new Path( fs2.getHomeDirectory().toString()+"/"+tophat_output_dir); 
+		//Path hdfs_job_path = new Path( fs2.getHomeDirectory().toString());		
 
 		List<String> inputfiles = Arrays.asList(tophat_input.split(","));
 
@@ -112,7 +114,7 @@ public class AlignTophat{
 			System.out.println("Input files are loaded");
 			/* Verifying the output directory*/
 			File dir = new File(tophat_output_dir);
-			if(dir.mkdir()){
+			if(dir.mkdirs()){
 				System.out.println("Output directory : "+ dir.toString() );
 			}
 			if(gtf_file.isEmpty()){

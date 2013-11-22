@@ -83,9 +83,9 @@ public class CufflinksSuite{
 		String infile = new Path(cuff_bam_input).getName();
 		String cufflinks_opts =  conf.get("cufflinks_opts","");
 		String ref_gtf = conf.get("cufflinks_gtf","");
-		final String cuff_output_dir = workingdir + "/" + conf.get("grid.output.dir","");
+		final String cuff_output_dir = conf.get("grid.output.dir","");
 		FileOutputStream fout = null;
-		Path hdfs_job_path = new Path(fs.getHomeDirectory().toString());
+		Path hdfs_job_path = new Path(fs.getHomeDirectory().toString()+"/"+cuff_output_dir);
 		File dir = new File(cuff_output_dir);
 		int ret;
 		try{
@@ -97,7 +97,7 @@ public class CufflinksSuite{
 				logger.info("Input file  : " + cuff_bam_input+ " ");
 			}
 			if(!dir.exists()){
-				dir.mkdir();
+				dir.mkdirs();
 			}
 			if(dir.isDirectory()){
 				logger.info("Output directory : "+ dir.toString());
@@ -114,7 +114,7 @@ public class CufflinksSuite{
 			ret = ProcessUtil.runCommand(new Command(cufflinks_cmd));
 			
 			if(ret == 0){
-			logger.info("Copying Results to hdfs : " +  hdfs_job_path+"/"+cuff_output_dir);
+			logger.info("Copying Results to hdfs : " +  hdfs_job_path);
 			fs.copyFromLocalFile(false,new Path(cuff_output_dir) , hdfs_job_path);
 			}
 			
@@ -151,7 +151,7 @@ public class CufflinksSuite{
 
 	public boolean callCuffmerge(final FileSystem fs,Configuration conf2) throws IOException, InterruptedException {
 		System.out.println(" Starting cuffmerge process ");
-		final String cuffmerge_output_dir = workingdir + "/" + conf2.get("grid.output.dir","");
+		final String cuffmerge_output_dir = conf2.get("grid.output.dir","");
 		String cuffmerge_in = conf2.get("grid.input.dir","");
 		String inputfile = new Path(cuffmerge_in).getName();
 		String cuffmerge_opts = conf.get("cuffmerge_opts","");
@@ -164,7 +164,7 @@ public class CufflinksSuite{
 		BufferedReader reader;
 		File dir = new File(cuffmerge_output_dir);
 		FileOutputStream fout = null;
-		Path hdfs_job_path = new Path(fs.getHomeDirectory().toString());
+		Path hdfs_job_path = new Path(fs.getHomeDirectory().toString()+"/" +cuffmerge_output_dir);
 		String line = null;
 		List<String> filelist =  new ArrayList<String>();
 
@@ -195,7 +195,7 @@ public class CufflinksSuite{
 				System.err.println("Error copying the input files ");
 			}
 			if(!dir.exists()){
-				dir.mkdir();
+				dir.mkdirs();
 			}
 			if(!dir.isDirectory()){
 				System.err.println("Error creating the output dir " + cuffmerge_output_dir);
@@ -213,7 +213,7 @@ public class CufflinksSuite{
 			System.out.println("Executing Cuffmerge command :" + cmd);
 			ret = ProcessUtil.runCommand(new Command(cufflinks_cmd));
 			if(ret==0){
-			logger.info("Copying Results to hdfs : " +  hdfs_job_path+"/"+cuffmerge_output_dir);
+			logger.info("Copying Results to hdfs : " +  hdfs_job_path);
 			fs.copyFromLocalFile(false,new Path(cuffmerge_output_dir) , hdfs_job_path);
 			}
 			
@@ -261,7 +261,7 @@ public class CufflinksSuite{
 		String cuffdiff_lbs = conf.get("cuffdiff_condn_labels","");
 		String genome = null;
 		int ret ;
-		Path hdfs_job_path = new Path(fs.getHomeDirectory().toString());
+		Path hdfs_job_path = new Path(fs.getHomeDirectory().toString()+"/"+cuffdiff_out);
 		final File dir = new File(workingdir + "/" + cuffdiff_out);
 
 		try {
@@ -288,7 +288,7 @@ public class CufflinksSuite{
 
 			FileOutputStream fout = null;
 			if(!dir.exists()){
-				dir.mkdir();
+				dir.mkdirs();
 			}
 			if(dir.isDirectory()){
 				System.out.println("Output directory : "+ dir.toString());
@@ -304,7 +304,7 @@ public class CufflinksSuite{
 			ret = ProcessUtil.runCommand(new Command(cufflinks_cmd));
 			
 			if(ret == 0){
-			logger.info("Copying Results to hdfs : " +  hdfs_job_path+"/"+cuffdiff_out);
+			logger.info("Copying Results to hdfs : " +  hdfs_job_path);
 			fs.copyFromLocalFile(false, new Path(cuffdiff_out), hdfs_job_path);
 			}
 			
