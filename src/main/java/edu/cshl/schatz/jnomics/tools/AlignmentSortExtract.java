@@ -73,7 +73,9 @@ public class AlignmentSortExtract {
         out.println(header);
         SequenceFile.Reader reader;
         for(String ref: seqList){
-            for(int fileNum : seqMap.get(ref)){
+            if(!seqMap.containsKey(ref))
+		continue;
+	    for(int fileNum : seqMap.get(ref)){
                 reader = new SequenceFile.Reader(fs,new Path(in,ref+"-"+fileNum),conf);
                 while(reader.next(record)){
                     out.println(record);
