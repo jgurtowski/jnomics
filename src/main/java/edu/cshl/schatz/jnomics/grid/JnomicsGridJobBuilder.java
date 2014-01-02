@@ -39,6 +39,7 @@ public class JnomicsGridJobBuilder {
 	private Configuration conf = null;
 	List<String> archives = new ArrayList<String>();
 	public static Map<Integer,String> returnCode =  new HashMap<Integer, String>();
+//	private String token = null;
 
 	public JnomicsGridJobBuilder(Configuration conf){
 		this.conf = conf;
@@ -54,7 +55,12 @@ public class JnomicsGridJobBuilder {
 		returnCode.put(48, "DONE");
 		returnCode.put(64, "FAILED");
 	}
-
+	
+//	public JnomicsGridJobBuilder(Configuration conf,String token){
+//		this.conf = conf;
+//		this.token = token;
+//
+//	}
 	public JnomicsGridJobBuilder setParam(String name, String value){	
 		conf.set(name,value);
 		return this;
