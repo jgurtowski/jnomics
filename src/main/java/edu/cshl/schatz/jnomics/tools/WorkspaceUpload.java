@@ -51,6 +51,7 @@ public class WorkspaceUpload {
 		    	String onto_term_def = conf.get("onto_term_def","");
 		    	String seq_type = conf.get("sequence_type","");
 		    	String ref_genome = conf.get("reference","");
+		    	String name = input.substring(input.lastIndexOf("/")+1);
 //		    	 System.out.println("Input is "+ input );
 //		    	 System.out.println("kb_id is "+ kb_id);
 //		    	 System.out.println("genome_id is" + genome_id);
@@ -60,7 +61,8 @@ public class WorkspaceUpload {
 //		    	 System.out.println("ref is " + ref_genome);
 				//String input = "/bluearc/home/schatz/sramakri/RNA-Seq/Tuxedo/challenge2/ct1_thout/transcripts.gtf";
 		    	try{
-		    	out = fs.create(new Path("sample_test."+kb_id));
+		    //	out = fs.create(new Path("sample_test."+kb_id));
+		    	out = fs.create(new Path("sample_test."+name));
 				in = fs.open(new Path(input));
 		        
 		        ExpressionSample expsamp = createExprSample(kb_id, in,genome_id,onto_term_id,onto_term_def,onto_term_name,seq_type,ref_genome);
@@ -92,47 +94,44 @@ public class WorkspaceUpload {
 		        expsample.setSourceId(kb_id);
 		        expsample.setSampleType("RNASeq");
 		        expsample.setInterpretation("FPKM");
-		        expsample.setDescription("");
-		        expsample.setTitle("");
-		        expsample.setDataQuality(0);
-		        expsample.setOMedian((float) 0);
-		        expsample.setExtSrcDate("");
+//		        expsample.setDescription("");
+//		        expsample.setTitle("");
+//		        expsample.setDataQuality(0);
+//		        expsample.setOMedian((float) 0);
+//		        expsample.setExtSrcDate("");
 		        
-		        ExpressionLevel explvl = new ExpressionLevel();
-		        explvl.setExprlevel(in);
-		        expsample.setExplevel(explvl);
+		        //ExpressionLevel explvl = new ExpressionLevel();
+		        //explvl.setExprlevel(in);
+		        expsample.setExprlevel(in);
 		        
 		        expsample.setGenomeId(genome_id);
-		        
+     
 		        ExpressionOntologyTerm expOnto = new ExpressionOntologyTerm();
 		        expOnto.setTermId(term_id);
-		        expOnto.setTermdef(term_def);
-		        expOnto.setTermName(term_name);
+//		        expOnto.setTermdef(term_def);
+//		        expOnto.setTermName(term_name);
 		        expsample.setExpOntology(expOnto); 
-	
-		        expsample.setExpPlatId(null);
-		        expsample.setExpSampleId(null);
-		        
-		        Protocol pro = new Protocol();
-		        pro.setName("RNA-Seq");
-		        pro.setDescription(Seq_type);
-		        expsample.setProtocol(pro);
-		        
-		        Strain str = new Strain();
-		        str.setGenomeId(genome_id);
-		        str.setDescription(null);
-		        str.setName(ref_genome);
-		        str.setRefStrain(ref_genome);
-		        str.setWildType(null);
-		        expsample.setStrain(str);
-		        
-		        //Persons per = new Persons();
-		        expsample.setPersons(null);
-		        
-		        expsample.setMolecule(null);
-		        expsample.setDataSource(null);
-
- 
+//		        expsample.setExpPlatId(null);
+//		        expsample.setExpSampleId(null);
+//		        
+//		        Protocol pro = new Protocol();
+//		        pro.setName("RNA-Seq");
+//		        pro.setDescription(Seq_type);
+//		        expsample.setProtocol(pro);
+//		        
+//		        Strain str = new Strain();
+//		        str.setGenomeId(genome_id);
+//		        str.setDescription(null);
+//		        str.setName(ref_genome);
+//		        str.setRefStrain(ref_genome);
+//		        str.setWildType(null);
+//		        expsample.setStrain(str);
+//		        
+//		        //Persons per = new Persons();
+//		        expsample.setPersons(null);
+//		        
+//		        expsample.setMolecule(null);
+//		        expsample.setDataSource(null);
 		        return expsample;
 		    }
 		 

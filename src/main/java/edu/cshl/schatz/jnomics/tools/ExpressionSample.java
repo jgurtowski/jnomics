@@ -1,5 +1,9 @@
 package edu.cshl.schatz.jnomics.tools;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,54 +28,15 @@ public class ExpressionSample {
 		@JsonProperty("numerical_interpretation")
 		private String numerical_interpretation;
 		
-		@JsonProperty("description")
-	    private String description;
-		
-		@JsonProperty("title")
-	    private String title;
-		
-		@JsonProperty("data_quality_level")
-	    private Integer data_quality_level;
-		
-		@JsonProperty("original_median")
-	    private Float original_median;
-		
-		@JsonProperty("external_source_date")
-	    private String external_source_date;
-		
-		@JsonProperty("data_expression_levels_for_sample_expression_levels")
-	    private ExpressionLevel data_expression_levels_for_sample_expression_levels;
+		@JsonProperty("expression_levels")
+	    private Map<String,Double> expression_levels;
 		
 		@JsonProperty("genome_id")
 	    private String genome_id;
 		
 		@JsonProperty("expression_ontology_terms")
 	    private ExpressionOntologyTerm expression_ontology_terms;
-		
-		@JsonProperty("platform_id")
-	    private String platform_id;
 
-		@JsonProperty("default_control_sample")
-		private String default_control_sample;
-		
-		@JsonProperty("averaged_from_samples")
-	    private List<String> averaged_from_samples;
-		
-		@JsonProperty("protocol")
-	    private Protocol protocol;
-		
-		@JsonProperty("strain")
-	    private Strain strain;
-		
-		@JsonProperty("persons")
-	    private Persons persons;
-		
-		@JsonProperty("molecule")
-	    private String molecule;
-		
-		@JsonProperty("data_source")
-	    private String data_source;
-	     
 		public String getKbId() {
 	        return kb_id;
 	    }
@@ -96,83 +61,46 @@ public class ExpressionSample {
 	    public void setInterpretation(String num_intpre) {
 	        this.numerical_interpretation = num_intpre;
 	    }
-	    public String getDescription() {
-	        return description;
+
+	    public Map<String,Double> getExprlevel(){
+	    	return expression_levels;
 	    }
-	    public void setDescription(String description) {
-	        this.description = description;
+	    public void setExprlevel(InputStream in){
+	    	BufferedReader bfr = new BufferedReader(new InputStreamReader(in));
+	    	String line;
+	    	String feature, value;
+	    	//String chr,feature , startpt, endpt , value; 
+	    	Double fpkm;
+	    	expression_levels = new HashMap<String, Double>();
+	    	try {
+				while((line = bfr.readLine()) != null){
+					String[] columns = line.split("\t" ,-1);
+					feature = columns[0];
+//					chr = columns[0];
+//					feature = columns[2];
+//					startpt = columns[3];
+//					endpt = columns[4];
+				    value = columns[9];
+				    String[] attr = value.split(" ");
+				    fpkm = Double.parseDouble(attr[9].replaceAll("[\";]", ""));
+					//exprlevelMap.put(chr+":"+feature + ":" + startpt + ":" + endpt,fpkm);
+				    expression_levels.put(feature,fpkm);
+				}
+		   } catch (IOException e) {
+				
+				e.printStackTrace();
+		   }
+	    	
 	    }
-	    public String getTitle() {
-	        return title;
-	    }
-	    public void setTitle(String title) {
-	        this.title = title;
-	    }
-	    public int getDataQuality() {
-	        return data_quality_level;
-	    }
-	    public void setDataQuality(Integer data_qual) {
-	        this.data_quality_level = data_qual;
-	    }
-	    public float getOMedian() {
-	        return original_median;
-	    }
-	    public void setOMedian(Float ori_med) {
-	        this.original_median = ori_med;
-	    }
-	    public String getExtSrcDate() {
-	        return external_source_date;
-	    }
-	    public void setExtSrcDate(String ext_src_date) {
-	        this.external_source_date = ext_src_date;
-	    }
-	    public ExpressionLevel getExplevel(){
-	    	return data_expression_levels_for_sample_expression_levels;
-	    }
-	    public void setExplevel(ExpressionLevel exprlevel ) {
-	        this.data_expression_levels_for_sample_expression_levels = exprlevel;
-	    }
+//	    public void setExplevel(Map<String,Double> exprlevel ) {
+//	        this.expression_levels = exprlevel;
+//	    }
+	    
 	    public ExpressionOntologyTerm getExpOntology(){
 	    	return expression_ontology_terms;
 	    }
 	    public void setExpOntology(ExpressionOntologyTerm exprOnto ) {
 	        this.expression_ontology_terms = exprOnto;
-	    }
-	    public String getExpPlatId(){
-	    	return platform_id;
-	    }
-	    public void setExpPlatId(String expr_plat_id ) {
-	        this.platform_id = expr_plat_id;
-	    }
-	    public String getExpSampleId(){
-	    	return default_control_sample;
-	    }
-	    public void setExpSampleId(String expr_sample_id ) {
-	        this.default_control_sample = expr_sample_id;
-	    }
-	    public List<String> getExpSampleIds(){
-	    	return averaged_from_samples;
-	    }
-	    public void setExpSampleIds(List<String> averaged_from_samples ) {
-	        this.averaged_from_samples = averaged_from_samples;
-	    }
-	    public Protocol getProtocol(){
-	    	return protocol;
-	    }
-	    public void setProtocol(Protocol protocol ) {
-	        this.protocol = protocol;
-	    }
-	    public Strain getStrain(){
-	    	return strain;
-	    }
-	    public void setStrain(Strain strain ) {
-	        this.strain = strain;
-	    }
-	    public Persons getPersons(){
-	    	return persons;
-	    }
-	    public void setPersons(Persons persons ) {
-	        this.persons = persons;
 	    }
 	    public String getGenomeId(){
 	    	return genome_id;
@@ -180,18 +108,7 @@ public class ExpressionSample {
 	    public void setGenomeId(String genome_id ) {
 	        this.genome_id = genome_id;
 	    }
-	    public String getMolecule(){
-	    	return molecule;
-	    }
-	    public void setMolecule(String molecule ) {
-	        this.molecule = molecule;
-	    }
-	    public String getDataSource(){
-	    	return data_source;
-	    }
-	    public void setDataSource(String data_source ) {
-	        this.data_source = data_source;
-	    }
+
 
 //	    public static ExpressionSample createExprSample(String kb_id,InputStream in,String genome_id, String term_id,String term_def,String term_name,String Seq_type , String ref_genome) {
 //			 
