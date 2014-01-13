@@ -6,7 +6,8 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Arrays;
+import java.util.regex.Pattern;
 import com.fasterxml.jackson.annotation.*;
 
 public class ExpressionSample {
@@ -16,7 +17,7 @@ public class ExpressionSample {
 	 */
 //	private static final long serialVersionUID = 1L;
 
-		@JsonProperty("kb_id")
+		@JsonProperty("id")
 	 	private String kb_id;
 		
 		@JsonProperty("source_id")
@@ -71,18 +72,17 @@ public class ExpressionSample {
 	    	String feature, value;
 	    	//String chr,feature , startpt, endpt , value; 
 	    	Double fpkm;
+		Pattern pattern = Pattern.compile("FPKM");
 	    	expression_levels = new HashMap<String, Double>();
 	    	try {
 				while((line = bfr.readLine()) != null){
 					String[] columns = line.split("\t" ,-1);
 					feature = columns[0];
-//					chr = columns[0];
-//					feature = columns[2];
-//					startpt = columns[3];
-//					endpt = columns[4];
 				    value = columns[9];
-				    String[] attr = value.split(" ");
-				    fpkm = Double.parseDouble(attr[9].replaceAll("[\";]", ""));
+				    String[] attr = pattern.split(value);
+                    String[] fpkmval = attr[1].split("\"");
+				    fpkm = Double.parseDouble(fpkmval[1].replaceAll("[\";]", "")); 
+				    //fpkm = Double.parseDouble(attr[9].replaceAll("[\";]", ""));
 					//exprlevelMap.put(chr+":"+feature + ":" + startpt + ":" + endpt,fpkm);
 				    expression_levels.put(feature,fpkm);
 				}

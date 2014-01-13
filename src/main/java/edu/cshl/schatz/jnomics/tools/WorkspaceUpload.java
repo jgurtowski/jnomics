@@ -61,14 +61,14 @@ public class WorkspaceUpload {
 //		    	 System.out.println("ref is " + ref_genome);
 				//String input = "/bluearc/home/schatz/sramakri/RNA-Seq/Tuxedo/challenge2/ct1_thout/transcripts.gtf";
 		    	try{
-		    //	out = fs.create(new Path("sample_test."+kb_id));
-		    	out = fs.create(new Path("sample_test."+name));
-				in = fs.open(new Path(input));
+		    	out = fs.create(new Path("sample_test."+kb_id));
+		    //	out = fs.create(new Path("sample_test."+name));
+			in = fs.open(new Path(input));
 		        
 		        ExpressionSample expsamp = createExprSample(kb_id, in,genome_id,onto_term_id,onto_term_def,onto_term_name,seq_type,ref_genome);
 		        
 		        //configure Object mapper for pretty print
-		        objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+		        objectMapper.configure(SerializationFeature.INDENT_OUTPUT,true);
 		         
 		        //writing to console, can write to any output stream such as file
 		        //StringWriter strexpsample = new StringWriter();
@@ -88,7 +88,7 @@ public class WorkspaceUpload {
 		     
 		    public static ExpressionSample createExprSample(String kb_id,InputStream in,String genome_id, String term_id,String term_def,String term_name,String Seq_type , String ref_genome) {
 		 
-		   	 System.out.println("Inside ExpressionSample");
+		   	// System.out.println("Inside ExpressionSample");
 		        ExpressionSample expsample = new ExpressionSample();
 		        expsample.setKbId(kb_id);
 		        expsample.setSourceId(kb_id);
@@ -108,8 +108,8 @@ public class WorkspaceUpload {
      
 		        ExpressionOntologyTerm expOnto = new ExpressionOntologyTerm();
 		        expOnto.setTermId(term_id);
-//		        expOnto.setTermdef(term_def);
-//		        expOnto.setTermName(term_name);
+		        expOnto.setTermdef(term_def);
+		        expOnto.setTermName(term_name);
 		        expsample.setExpOntology(expOnto); 
 //		        expsample.setExpPlatId(null);
 //		        expsample.setExpSampleId(null);

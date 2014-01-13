@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import us.kbase.shock.client.BasicShockClient;
 import edu.cshl.schatz.jnomics.grid.JnomicsGridJobBuilder;
 import edu.cshl.schatz.jnomics.util.FileUtil;
+import edu.cshl.schatz.jnomics.util.ShockUtil;
 
 import java.io.FilenameFilter;
 
@@ -60,6 +61,8 @@ public class GridJobMain extends Configured implements Tool {
 			if(gridJob.matches(".*-write-.*")){
 				String shockurl = conf.get("shock-url","");
 				String shocktoken = new String(Base64.decodeBase64(conf.get("shock-token","")));
+				String proxy = conf.get("http_proxy","");
+				ShockUtil.setHttpProxy(proxy);
 				logger.info("Shock url " + shockurl + " Token is  " + shocktoken);
 				String filename = conf.get("grid.input.dir","");
 				logger.info("filename " + filename);
@@ -73,6 +76,8 @@ public class GridJobMain extends Configured implements Tool {
 				String shockurl = conf.get("shock-url","");
 				String shocktoken = new String(Base64.decodeBase64(conf.get("shock-token","")));
 				logger.info("Shock url " + shockurl + " Token is  " + shocktoken);
+				String proxy = conf.get("http_proxy","");
+				ShockUtil.setHttpProxy(proxy);
 				String nodeid = conf.get("grid.input.dir","");
 				String dest = conf.get("grid.output.dir","");
 				logger.info("nodeid : " + nodeid);
