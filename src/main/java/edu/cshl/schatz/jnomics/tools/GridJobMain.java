@@ -61,7 +61,7 @@ public class GridJobMain extends Configured implements Tool {
 			if(gridJob.matches(".*-write-.*")){
 				String shockurl = conf.get("shock-url","");
 				String shocktoken = new String(Base64.decodeBase64(conf.get("shock-token","")));
-				String proxy = conf.get("http_proxy","");
+				String proxy = conf.get("http-proxy","");
 				ShockUtil.setHttpProxy(proxy);
 				logger.info("Shock url " + shockurl + " Token is  " + shocktoken);
 				String filename = conf.get("grid.input.dir","");
@@ -76,7 +76,7 @@ public class GridJobMain extends Configured implements Tool {
 				String shockurl = conf.get("shock-url","");
 				String shocktoken = new String(Base64.decodeBase64(conf.get("shock-token","")));
 				logger.info("Shock url " + shockurl + " Token is  " + shocktoken);
-				String proxy = conf.get("http_proxy","");
+				String proxy = conf.get("http-proxy","");
 				ShockUtil.setHttpProxy(proxy);
 				String nodeid = conf.get("grid.input.dir","");
 				String dest = conf.get("grid.output.dir","");
