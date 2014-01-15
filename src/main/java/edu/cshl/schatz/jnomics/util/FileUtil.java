@@ -1,5 +1,7 @@
 package edu.cshl.schatz.jnomics.util;
 
+import org.apache.http.HttpHost;
+
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -110,12 +112,12 @@ public class FileUtil {
     		logger.info("filename :" + filename);
     		Path pfilename = new Path(filename);
     		String file = pfilename.getName();
-    		base = new BasicShockClient(new URL(url),new AuthToken(token));
+    		base = new BasicShockClient(new URL(url),null,new AuthToken(token));
     		logger.info("Shock java client authenticated");
     		logger.info("File name is " + file);
     		fsin = fs.open(pfilename);
     		
-    		ShockNode sn = base.addNode(fsin, file);
+    		ShockNode sn = base.addNode(fsin, file, null);
     		id = sn.getId().toString();
     		logger.info("Copied file : " + filename + " to Shock"  );
     		logger.info("Node id : " + id  );
@@ -141,7 +143,7 @@ public class FileUtil {
     		logger.info("token :" + token);
     		logger.info("filename :" + nodeid);
     		logger.info("dest :" + dest);
-    		base = new BasicShockClient(new URL(url),new AuthToken(token));
+    		base = new BasicShockClient(new URL(url), null, new AuthToken(token));
     		fsout = fs.create(new Path(dest),true);
     		base.getFile(new ShockNodeId(nodeid.trim()),fsout);
     	
