@@ -1,7 +1,6 @@
 package edu.cshl.schatz.jnomics.util;
 
 import org.apache.http.HttpHost;
-
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -99,20 +98,26 @@ public class FileUtil {
     	return true;
     	
     }
-    public static String copyToShock(String url,String token,FileSystem fs, String filename) throws IOException{
+    public static String copyToShock(String url,String token,String proxy,FileSystem fs, String filename) throws IOException{
   
     	String id = null;
     	BasicShockClient base = null;
     	FSDataInputStream fsin = null;
-    	
+    	String[] arr ;
     	try { 
-    		logger.info("try block");
     		logger.info("url : " + url);
     		logger.info("token :" + token);
     		logger.info("filename :" + filename);
+    		logger.info("Proxy is :" + proxy);
     		Path pfilename = new Path(filename);
     		String file = pfilename.getName();
-    		base = new BasicShockClient(new URL(url),null,new AuthToken(token));
+    		if(!proxy.equals("")){
+    			logger.info("Getting in the if");
+    	    	arr = proxy.split(":");
+    	    	base = new BasicShockClient(new URL(url),new HttpHost(arr[0],Integer.parseInt(arr[1])),new AuthToken(token));
+    		}else{
+    			base = new BasicShockClient(new URL(url),null,new AuthToken(token));
+    		}
     		logger.info("Shock java client authenticated");
     		logger.info("File name is " + file);
     		fsin = fs.open(pfilename);
@@ -131,11 +136,12 @@ public class FileUtil {
     	
     }
 
-    public static boolean copyFromShock(String url,String token,FileSystem fs, String nodeid, String  dest) throws IOException{
+    public static boolean copyFromShock(String url,String token,String proxy,FileSystem fs, String nodeid, String  dest) throws IOException{
     	//String id = null;
     	BasicShockClient base = null;
     	FSDataOutputStream fsout = null;
     	//OutputStream out;
+    	String[] arr;
     	ShockNode sn ;
     
     	try { 
@@ -143,7 +149,14 @@ public class FileUtil {
     		logger.info("token :" + token);
     		logger.info("filename :" + nodeid);
     		logger.info("dest :" + dest);
-    		base = new BasicShockClient(new URL(url), null, new AuthToken(token));
+    		logger.info("Proxy is :" + proxy);
+    		if(!proxy.equals("")){
+    			logger.info("Getting in the if");
+    	    	arr = proxy.split(":");
+    	    	base = new BasicShockClient(new URL(url),new HttpHost(arr[0],Integer.parseInt(arr[1])),new AuthToken(token));
+    		}else{
+    			base = new BasicShockClient(new URL(url),null,new AuthToken(token));
+    		}
     		fsout = fs.create(new Path(dest),true);
     		base.getFile(new ShockNodeId(nodeid.trim()),fsout);
     	

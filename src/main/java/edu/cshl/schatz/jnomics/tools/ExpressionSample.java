@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Arrays;
 import java.util.regex.Pattern;
+
 import com.fasterxml.jackson.annotation.*;
 
 public class ExpressionSample {
@@ -29,6 +30,15 @@ public class ExpressionSample {
 		@JsonProperty("numerical_interpretation")
 		private String numerical_interpretation;
 		
+		@JsonProperty("description")
+	    private String description;
+		
+		@JsonProperty("title")
+	    private String title;
+		
+		@JsonProperty("external_source_date")
+	    private String external_source_date;
+		
 		@JsonProperty("expression_levels")
 	    private Map<String,Double> expression_levels;
 		
@@ -37,6 +47,9 @@ public class ExpressionSample {
 		
 		@JsonProperty("expression_ontology_terms")
 	    private ExpressionOntologyTerm expression_ontology_terms;
+		
+		@JsonProperty("strain")
+	    private Strain strain;
 
 		public String getKbId() {
 	        return kb_id;
@@ -62,7 +75,25 @@ public class ExpressionSample {
 	    public void setInterpretation(String num_intpre) {
 	        this.numerical_interpretation = num_intpre;
 	    }
-
+	    public String getDescription() {
+	        return description;
+	    }
+	    public void setDescription(String description) {
+	        this.description = description;
+	    }
+	    public String getTitle() {
+	        return title;
+	    }
+	    public void setTitle(String title) {
+	        this.title = title;
+	    }
+	    public String getExtSrcDate() {
+	        return external_source_date;
+	    }
+	    public void setExtSrcDate(String ext_src_date) {
+	        this.external_source_date = ext_src_date;
+	    }
+	    
 	    public Map<String,Double> getExprlevel(){
 	    	return expression_levels;
 	    }
@@ -109,6 +140,12 @@ public class ExpressionSample {
 	        this.genome_id = genome_id;
 	    }
 
+	    public Strain getStrain(){
+	    	return strain;
+	    }
+	    public void setStrain(Strain strain ) {
+	        this.strain = strain;
+	    }
 
 //	    public static ExpressionSample createExprSample(String kb_id,InputStream in,String genome_id, String term_id,String term_def,String term_name,String Seq_type , String ref_genome) {
 //			 

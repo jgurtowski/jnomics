@@ -62,12 +62,12 @@ public class GridJobMain extends Configured implements Tool {
 				String shockurl = conf.get("shock-url","");
 				String shocktoken = new String(Base64.decodeBase64(conf.get("shock-token","")));
 				String proxy = conf.get("http-proxy","");
-				ShockUtil.setHttpProxy(proxy);
+				//ShockUtil.setHttpProxy(proxy);
 				logger.info("Shock url " + shockurl + " Token is  " + shocktoken);
 				String filename = conf.get("grid.input.dir","");
 				logger.info("filename " + filename);
 				try{
-					FileUtil.copyToShock(shockurl, shocktoken, fs1 , filename);
+					FileUtil.copyToShock(shockurl, shocktoken,proxy, fs1 , filename);
 					//copyanddelete(fs1,jobid,userhome,hdfs_job_path);
 				}catch(Exception e){
 					e.printStackTrace();
@@ -77,12 +77,12 @@ public class GridJobMain extends Configured implements Tool {
 				String shocktoken = new String(Base64.decodeBase64(conf.get("shock-token","")));
 				logger.info("Shock url " + shockurl + " Token is  " + shocktoken);
 				String proxy = conf.get("http-proxy","");
-				ShockUtil.setHttpProxy(proxy);
+				//ShockUtil.setHttpProxy(proxy);
 				String nodeid = conf.get("grid.input.dir","");
 				String dest = conf.get("grid.output.dir","");
 				logger.info("nodeid : " + nodeid);
 				try{
-					FileUtil.copyFromShock(shockurl, shocktoken, fs1 , nodeid,dest);
+					FileUtil.copyFromShock(shockurl, shocktoken, proxy, fs1 , nodeid,dest);
 					//copyanddelete(fs1,jobid,userhome,hdfs_job_path);
 				}catch(Exception e){
 					e.printStackTrace();

@@ -61,14 +61,14 @@ public class WorkspaceUpload {
 //		    	 System.out.println("ref is " + ref_genome);
 				//String input = "/bluearc/home/schatz/sramakri/RNA-Seq/Tuxedo/challenge2/ct1_thout/transcripts.gtf";
 		    	try{
-		    	out = fs.create(new Path("sample_test."+kb_id));
+		    	out = fs.create(new Path(kb_id));
 		    //	out = fs.create(new Path("sample_test."+name));
-			in = fs.open(new Path(input));
+			    in = fs.open(new Path(input));
 		        
 		        ExpressionSample expsamp = createExprSample(kb_id, in,genome_id,onto_term_id,onto_term_def,onto_term_name,seq_type,ref_genome);
 		        
 		        //configure Object mapper for pretty print
-		        objectMapper.configure(SerializationFeature.INDENT_OUTPUT,true);
+		        objectMapper.configure(SerializationFeature.INDENT_OUTPUT,false);
 		         
 		        //writing to console, can write to any output stream such as file
 		        //StringWriter strexpsample = new StringWriter();
@@ -92,13 +92,13 @@ public class WorkspaceUpload {
 		        ExpressionSample expsample = new ExpressionSample();
 		        expsample.setKbId(kb_id);
 		        expsample.setSourceId(kb_id);
-		        expsample.setSampleType("RNASeq");
+		        expsample.setSampleType("RNA-Seq");
 		        expsample.setInterpretation("FPKM");
-//		        expsample.setDescription("");
-//		        expsample.setTitle("");
+		        expsample.setDescription("");
+		        expsample.setTitle("");
 //		        expsample.setDataQuality(0);
 //		        expsample.setOMedian((float) 0);
-//		        expsample.setExtSrcDate("");
+		        expsample.setExtSrcDate("");
 		        
 		        //ExpressionLevel explvl = new ExpressionLevel();
 		        //explvl.setExprlevel(in);
@@ -119,13 +119,13 @@ public class WorkspaceUpload {
 //		        pro.setDescription(Seq_type);
 //		        expsample.setProtocol(pro);
 //		        
-//		        Strain str = new Strain();
-//		        str.setGenomeId(genome_id);
-//		        str.setDescription(null);
-//		        str.setName(ref_genome);
-//		        str.setRefStrain(ref_genome);
-//		        str.setWildType(null);
-//		        expsample.setStrain(str);
+		        Strain str = new Strain();
+		        str.setGenomeId(ref_genome);
+		        str.setDescription(ref_genome + " wild_type reference strain");
+		        str.setName(ref_genome);
+		        str.setRefStrain("Y");
+		        str.setWildType("Y");
+		        expsample.setStrain(str);
 //		        
 //		        //Persons per = new Persons();
 //		        expsample.setPersons(null);
