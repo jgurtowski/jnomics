@@ -108,7 +108,8 @@ public class AlignTophat{
 				}
 			});
 			for( File index : idxfiles){
-				genome = index.getName().substring(0,index.getName().lastIndexOf("."));
+				genome = index.getName();
+				//genome = index.getName().substring(0,index.getName().lastIndexOf("."));
 				System.out.println("genome is "  + genome);
 			}
 			System.out.println("Input files are loaded");
