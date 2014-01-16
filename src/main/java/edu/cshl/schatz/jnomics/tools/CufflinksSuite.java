@@ -177,7 +177,7 @@ public class CufflinksSuite{
 			File [] idxfiles = new File(workingdir).listFiles(new FilenameFilter() {
 			    @Override
 			    public boolean accept(File dir, String name) {
-			        return name.endsWith(".fa");
+			        return name.endsWith(".fa") || name.endsWith(".fasta");
 			    }
 			});
 			for( File index : idxfiles){
@@ -278,7 +278,7 @@ public class CufflinksSuite{
 			File [] idxfiles = new File(workingdir).listFiles(new FilenameFilter() {
 			    @Override
 			    public boolean accept(File dir, String name) {
-			        return name.endsWith(".fa");
+			        return name.endsWith(".fa") || name.endsWith(".fasta");
 			    }
 			});
 			for( File index : idxfiles){

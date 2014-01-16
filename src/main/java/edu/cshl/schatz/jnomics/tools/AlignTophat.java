@@ -104,7 +104,7 @@ public class AlignTophat{
 			File [] idxfiles = new File(workingdir).listFiles(new FilenameFilter() {
 				@Override
 				public boolean accept(File dir, String name) {
-					return name.contains(".fa");		 
+					return name.endsWith(".fa") || name.endsWith(".fasta");		 
 				}
 			});
 			for( File index : idxfiles){
