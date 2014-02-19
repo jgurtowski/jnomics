@@ -6,8 +6,13 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Arrays;
 import java.util.regex.Pattern;
+
+//import org.apache.commons.collections4.MultiMap;
+//import org.apache.commons.collections4.map.MultiValueMap;
+
+
+
 
 import com.fasterxml.jackson.annotation.*;
 
@@ -40,13 +45,13 @@ public class ExpressionSample {
 	    private String external_source_date;
 		
 		@JsonProperty("expression_levels")
-	    private Map<String,Double> expression_levels;
+	    private Map<String, Double> expression_levels;
 		
 		@JsonProperty("genome_id")
 	    private String genome_id;
 		
 		@JsonProperty("expression_ontology_terms")
-	    private ExpressionOntologyTerm expression_ontology_terms;
+	    private ExpressionOntologyTerm[] expression_ontology_terms;
 		
 		@JsonProperty("strain")
 	    private Strain strain;
@@ -102,23 +107,29 @@ public class ExpressionSample {
 	    	String line;
 	    	String feature, value;
 	    	//String chr,feature , startpt, endpt , value; 
-	    	Double fpkm;
+	    	Double fpkm = (double) 0;
 		Pattern pattern = Pattern.compile("FPKM");
-	    	expression_levels = new HashMap<String, Double>();
+	    	expression_levels =  new HashMap<String, Double>();
 	    	try {
 				while((line = bfr.readLine()) != null){
 					String[] columns = line.split("\t" ,-1);
 					feature = columns[0];
-				    value = columns[9];
+				    //value = columns[9];
+					value = columns[4];
 				    String[] attr = pattern.split(value);
                     String[] fpkmval = attr[1].split("\"");
-				    fpkm = Double.parseDouble(fpkmval[1].replaceAll("[\";]", "")); 
+                    fpkm = Double.parseDouble(fpkmval[1].replaceAll("[\";]", ""));
+                    fpkm = expression_levels.containsKey(feature) ? ( expression_levels.get(feature) + fpkm ): fpkm;
+//                    if(expression_levels.containsKey(feature)){	
+//                    	expression_levels.get(feature).;
+//                    }else {
+				    	//System.out.println("fpkm is " + fpkm);
 				    //fpkm = Double.parseDouble(attr[9].replaceAll("[\";]", ""));
 					//exprlevelMap.put(chr+":"+feature + ":" + startpt + ":" + endpt,fpkm);
-				    expression_levels.put(feature,fpkm);
+                    expression_levels.put(feature,fpkm);
+//                    }
 				}
 		   } catch (IOException e) {
-				
 				e.printStackTrace();
 		   }
 	    	
@@ -127,10 +138,10 @@ public class ExpressionSample {
 //	        this.expression_levels = exprlevel;
 //	    }
 	    
-	    public ExpressionOntologyTerm getExpOntology(){
+	    public ExpressionOntologyTerm[] getExpOntologyList(){
 	    	return expression_ontology_terms;
 	    }
-	    public void setExpOntology(ExpressionOntologyTerm exprOnto ) {
+	    public void setExpOntology(ExpressionOntologyTerm[] exprOnto ) {
 	        this.expression_ontology_terms = exprOnto;
 	    }
 	    public String getGenomeId(){
@@ -139,7 +150,6 @@ public class ExpressionSample {
 	    public void setGenomeId(String genome_id ) {
 	        this.genome_id = genome_id;
 	    }
-
 	    public Strain getStrain(){
 	    	return strain;
 	    }

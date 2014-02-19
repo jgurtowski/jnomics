@@ -15,7 +15,7 @@ public class ExpressionOntologyTerm {
 	@JsonProperty("expression_ontology_term_name")
 	private String term_name;
 	
-	@JsonProperty("expression_ontology_term_def")
+	@JsonProperty("expression_ontology_term_definition")
 	private String term_def;
 	
 	public String getTermId() {

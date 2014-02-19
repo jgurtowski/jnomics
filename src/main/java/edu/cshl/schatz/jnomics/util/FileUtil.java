@@ -72,6 +72,7 @@ public class FileUtil {
     	dir.mkdirs();
     	
     }
+   
     public static boolean copyFromHdfs(FileSystem fs, List<String> files, String  dest) throws IOException{
 		for(String file :  files ) {
 			logger.info("file in FileUtil is " + file);
