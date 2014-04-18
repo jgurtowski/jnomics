@@ -150,9 +150,7 @@ public class FileUtil {
     		logger.info("token :" + token);
     		logger.info("filename :" + nodeid);
     		logger.info("dest :" + dest);
-    		logger.info("Proxy is :" + proxy);
     		if(!proxy.equals("")){
-    			logger.info("Getting in the if");
     	    	arr = proxy.split(":");
     	    	base = new BasicShockClient(new URL(url),new HttpHost(arr[0],Integer.parseInt(arr[1])),new AuthToken(token));
     		}else{

@@ -70,7 +70,7 @@ public class WorkspaceUpload {
 		InputStream in = null;
 		OutputStream out = null;
 		String entityfile ;
-		WorkspaceClient wrc;
+		//WorkspaceClient wrc;
 		List<String> genome = new ArrayList<String>();
 		ObjectMapper objectMapper = new ObjectMapper();
 		String input = conf.get("grid.input.dir","");
@@ -112,40 +112,45 @@ public class WorkspaceUpload {
 		genome.add("kb|g."+genome_id);
 		String tarname = new Path(tarfile).getName();
 		String ret;
+		StringWriter strexpsample;
 		try{
 			//			out = fs.create(new Path(kb_id));
 			Path parentdir =  new Path(input).getParent();
-			GetGenomeFeatures get1 = new GetGenomeFeatures();
-			entityfile = get1.getfeatures(fs, cdmi_url, genome);
+//			GetGenomeFeatures get1 = new GetGenomeFeatures();
+//			entityfile = get1.getfeatures(fs, cdmi_url, genome);
+			entityfile = "kb|" + genome_id + "_fids.txt";
 			fs.copyToLocalFile(new Path(tarfile), new Path(workingdir));
 			FileUtil.untar(fs,tarname, workingdir);
 			fs.copyToLocalFile(new Path(entityfile), new  Path(workingdir));
-			fs.copyToLocalFile(new Path(input), new Path(workingdir));
+			fs.copyToLocalFile(new Path(input), new Path(workingdir+"/transcripts.gtf"));
 			findfeatureOverlap.runbedtoolsScript(fs,scriptfile,entityfile,parentdir);
-			in = fs.open(new Path(parentdir.toString()+"/kbase_transcripts.gtf"));
+			in = fs.open(new Path("transcripts.gtf"));
 			ExpressionSample expsamp = createExprSample(kb_id, in,genome_id,description,title,srcDate,onto_term_id, onto_term_def,onto_term_name,seq_type,ref_genome);
 			//configure Object mapper for pretty print
 			objectMapper.configure(SerializationFeature.INDENT_OUTPUT,false);
+			out = fs.create(new Path(kb_id+"_expressionsample.json"));
 			//writing to console, can write to any output stream such as file
-			StringWriter strexpsample = new StringWriter();
+//			strexpsample = new StringWriter();
 			objectMapper.setVisibility(PropertyAccessor.ALL, Visibility.NONE);
 			objectMapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
 			System.out.println("Writing the Expression object " + kb_id);
-			objectMapper.writeValue(strexpsample, expsamp);
-			//			objectMapper.writeValue(out, expsamp);
-			Workspace wrksc = new Workspace(wsc_url, token);
-			wrc = wrksc.getWrcClient();
-			ret = wrksc.wrcsaveObject(wrc, ws_name, type, kb_id, strexpsample.toString());
-			if(ret != null){
-				logger.info(ret + " Object saved to workspace");
-			}
-
+//			objectMapper.writeValue(strexpsample, expsamp);
+			objectMapper.writeValue(out, expsamp);
+			//Workspace wrksc = new Workspace(wsc_url, token);
+			//wrc = wrksc.getWrcClient();
+			//ret = wrksc.wrcsaveObject(wrc, ws_name, type, kb_id, strexpsample.toString());
+			//if(ret != null){
+			//	logger.info(ret + " Object saved to workspace");
+			//}
+		
+			
 		}catch(Exception e){
 			e.printStackTrace();
 		}finally{
 			in.close();
 			out.close();
 		}
+//		return strexpsample.toString();
 	}
 	/**
 	 * <p>createExprSample</p>
