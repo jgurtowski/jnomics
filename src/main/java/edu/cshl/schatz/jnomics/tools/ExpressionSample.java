@@ -126,6 +126,7 @@ public class ExpressionSample {
 				    	//System.out.println("fpkm is " + fpkm);
 				    //fpkm = Double.parseDouble(attr[9].replaceAll("[\";]", ""));
 					//exprlevelMap.put(chr+":"+feature + ":" + startpt + ":" + endpt,fpkm);
+                    //System.out.println("feature is " + feature + " fpkm  is " + fpkm);
                     expression_levels.put(feature,fpkm);
 //                    }
 				}

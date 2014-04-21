@@ -118,17 +118,17 @@ public class WorkspaceUpload {
 			Path parentdir =  new Path(input).getParent();
 //			GetGenomeFeatures get1 = new GetGenomeFeatures();
 //			entityfile = get1.getfeatures(fs, cdmi_url, genome);
-			entityfile = "kb|" + genome_id + "_fids.txt";
+			entityfile = "kb_" + genome_id + "_fids.txt";
 			fs.copyToLocalFile(new Path(tarfile), new Path(workingdir));
 			FileUtil.untar(fs,tarname, workingdir);
 			fs.copyToLocalFile(new Path(entityfile), new  Path(workingdir));
 			fs.copyToLocalFile(new Path(input), new Path(workingdir+"/transcripts.gtf"));
 			findfeatureOverlap.runbedtoolsScript(fs,scriptfile,entityfile,parentdir);
-			in = fs.open(new Path("transcripts.gtf"));
+			in = fs.open(new Path(parentdir,"kbase_transcripts.gtf"));
 			ExpressionSample expsamp = createExprSample(kb_id, in,genome_id,description,title,srcDate,onto_term_id, onto_term_def,onto_term_name,seq_type,ref_genome);
 			//configure Object mapper for pretty print
 			objectMapper.configure(SerializationFeature.INDENT_OUTPUT,false);
-			out = fs.create(new Path(kb_id+"_expressionsample.json"));
+			out = fs.create(new Path(kb_id+".json"));
 			//writing to console, can write to any output stream such as file
 //			strexpsample = new StringWriter();
 			objectMapper.setVisibility(PropertyAccessor.ALL, Visibility.NONE);
