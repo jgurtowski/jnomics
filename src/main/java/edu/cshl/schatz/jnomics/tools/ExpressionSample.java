@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 
 
 
+
 import com.fasterxml.jackson.annotation.*;
 
 public class ExpressionSample {
@@ -53,9 +54,15 @@ public class ExpressionSample {
 		@JsonProperty("expression_ontology_terms")
 	    private ExpressionOntologyTerm[] expression_ontology_terms;
 		
+		@JsonProperty("expression_sample_id")
+	    private String expression_sample_id;
+		
 		@JsonProperty("strain")
 	    private Strain strain;
 
+		@JsonProperty("shock_url")
+	    private String shock_url;
+		
 		public String getKbId() {
 	        return kb_id;
 	    }
@@ -145,6 +152,13 @@ public class ExpressionSample {
 	    public void setExpOntology(ExpressionOntologyTerm[] exprOnto ) {
 	        this.expression_ontology_terms = exprOnto;
 	    }
+	    public String getExpression_Sample_id(){
+	    	return expression_sample_id;
+	    }
+	    public void setExpression_Sample_id(String  expression_sample_id) {
+	        this.expression_sample_id = expression_sample_id;
+	    }
+	        
 	    public String getGenomeId(){
 	    	return genome_id;
 	    }
@@ -156,6 +170,12 @@ public class ExpressionSample {
 	    }
 	    public void setStrain(Strain strain ) {
 	        this.strain = strain;
+	    }
+	    public String getShockUrl(){
+	    	return shock_url;
+	    }
+	    public void setShockUrl(String shock_url ) {
+	        this.shock_url = shock_url;
 	    }
 
 //	    public static ExpressionSample createExprSample(String kb_id,InputStream in,String genome_id, String term_id,String term_def,String term_name,String Seq_type , String ref_genome) {

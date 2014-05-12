@@ -83,18 +83,14 @@ public class WorkspaceUpload {
 		String onto_term_name = conf.get("onto_term_name","");
 		String onto_term_def = conf.get("onto_term_def","");
 		String seq_type = conf.get("sequence_type","");
-		String ref_genome = conf.get("reference","");
+		String shockurl = conf.get("shock_url","");
 		String cdmi_url = conf.get("cdmi-url","");
 		String wsc_url = conf.get("workspace-url","");
 		String tarfile = conf.get("bedtools_binary","");
 		String scriptfile =  conf.get("bedtools_script","");
 		String token = new String(Base64.decodeBase64(conf.get("auth-token", "")));
-		String name = input.substring(input.lastIndexOf("/")+1);
-
-		//Change the the production workspace name
-		String ws_name = "sriworkspace";
-
-		String type = "ExpressionServices.ExpressionSample";
+//		String name = input.substring(input.lastIndexOf("/")+1);
+//		String type = "ExpressionServices.ExpressionSample";
 
 		logger.info("Input is "+ input );
 		logger.info("kb_id is "+ kb_id);
@@ -102,7 +98,7 @@ public class WorkspaceUpload {
 		logger.info("onto_term_id is " + onto_term_id);
 		logger.info("onto_term_def is " + onto_term_def);
 		logger.info("sequence_type is " +  seq_type);
-		logger.info("ref is " + ref_genome);
+		logger.info("shock url is " + shockurl);
 		logger.info("cdmi-url is " +  cdmi_url);
 		logger.info("workspace-url is " +  wsc_url);
 		logger.info("token is " +  token);
@@ -111,8 +107,8 @@ public class WorkspaceUpload {
 
 		genome.add("kb|g."+genome_id);
 		String tarname = new Path(tarfile).getName();
-		String ret;
-		StringWriter strexpsample;
+//		String ret;
+//		StringWriter strexpsample;
 		try{
 			//			out = fs.create(new Path(kb_id));
 			Path parentdir =  new Path(input).getParent();
@@ -125,10 +121,10 @@ public class WorkspaceUpload {
 			fs.copyToLocalFile(new Path(input), new Path(workingdir+"/transcripts.gtf"));
 			findfeatureOverlap.runbedtoolsScript(fs,scriptfile,entityfile,parentdir);
 			in = fs.open(new Path(parentdir,"kbase_transcripts.gtf"));
-			ExpressionSample expsamp = createExprSample(kb_id, in,genome_id,description,title,srcDate,onto_term_id, onto_term_def,onto_term_name,seq_type,ref_genome);
+			ExpressionSample expsamp = createExprSample(kb_id, in,genome_id,description,title,srcDate,onto_term_id, onto_term_def,onto_term_name,seq_type,shockurl);
 			//configure Object mapper for pretty print
 			objectMapper.configure(SerializationFeature.INDENT_OUTPUT,false);
-			out = fs.create(new Path(kb_id+".json"));
+			out = fs.create(new Path(kb_id));
 			//writing to console, can write to any output stream such as file
 //			strexpsample = new StringWriter();
 			objectMapper.setVisibility(PropertyAccessor.ALL, Visibility.NONE);
@@ -158,9 +154,8 @@ public class WorkspaceUpload {
 	 * Creates the Expression JSON Objects.
 	 * </pre>
 	 */
-	public static ExpressionSample createExprSample(String kb_id,InputStream in,String genome_id, String desc , String title ,String srcdate, String term_id,String term_def,String term_name,String Seq_type , String ref_genome) {
+	public static ExpressionSample createExprSample(String kb_id,InputStream in,String genome_id, String desc , String title ,String srcdate, String term_id,String term_def,String term_name,String Seq_type , String shockurl) {
 
-		System.out.println("Inside ExpressionSample");
 		ExpressionSample expsample = new ExpressionSample();;
 		ExpressionOntologyTerm[] ontolist;
 		expsample.setKbId(kb_id);
@@ -173,7 +168,8 @@ public class WorkspaceUpload {
 		//		        expsample.setOMedian((float) 0);
 		expsample.setExtSrcDate(srcdate);
 		expsample.setExprlevel(in);
-		expsample.setGenomeId("kb|g."+genome_id); 	
+		expsample.setGenomeId("kb|"+genome_id);
+		expsample.setExpression_Sample_id(kb_id);
 		List<String> ontoIds = Arrays.asList(term_id.split(","));
 		ontolist = new ExpressionOntologyTerm[ontoIds.size()];
 		List<String> termDefs = Arrays.asList(term_def.split(","));
@@ -186,13 +182,13 @@ public class WorkspaceUpload {
 		}
 		expsample.setExpOntology(ontolist);		        
 		Strain str = new Strain();
-		str.setGenomeId("kb|g." + ref_genome);
-		str.setDescription("kb|g." +  ref_genome + " wild_type reference strain");
-		str.setName("kb|g." + ref_genome);
+		str.setGenomeId("kb|" + genome_id);
+		str.setDescription("kb|" +  genome_id + " wild_type reference strain");
+		str.setName("kb|" + genome_id);
 		str.setRefStrain("Y");
 		str.setWildType("Y");
 		expsample.setStrain(str);
-
+        expsample.setShockUrl(shockurl);
 		return expsample;
 	}
 

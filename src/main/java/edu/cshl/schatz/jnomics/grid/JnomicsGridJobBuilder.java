@@ -115,7 +115,7 @@ public class JnomicsGridJobBuilder {
 			//scontact = session.getContact();
 			session.deleteJobTemplate(jt);
 		}catch(Exception e){
-			throw new Exception();
+			throw new Exception(e.getMessage());
 		}finally{
 			session.exit();
 		}
@@ -124,7 +124,7 @@ public class JnomicsGridJobBuilder {
 		return this ;
 	}
 
-	public String getjobstatus(String JobId)throws DrmaaException{
+	public String getjobstatus(String JobId)throws Exception{
 		SessionFactory factory = SessionFactory.getFactory();
 		Session session = factory.getSession();
 		int ret = 0;
@@ -154,7 +154,7 @@ public class JnomicsGridJobBuilder {
 				stdError = new BufferedReader(new 
 						InputStreamReader(p.getErrorStream()));
 				jobinfo = stdInput.readLine();
-				//System.out.println(jobinfo);
+				System.out.println(jobinfo);
 				String[] jobstatus = jobinfo.split("  ");
 				//System.out.println("String is " + jobstatus[1]);
 				if(jobstatus[1].trim().equals("0")){
@@ -168,7 +168,7 @@ public class JnomicsGridJobBuilder {
 				//			System.out.println(jobinfo.toString());
 
 			}catch(Exception ee){
-				ee.printStackTrace();
+				throw new Exception(ee.getMessage());
 			}
 		}finally{
 			session.exit();
