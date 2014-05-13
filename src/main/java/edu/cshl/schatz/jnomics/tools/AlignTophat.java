@@ -145,10 +145,8 @@ public class AlignTophat{
 			}
 			String cmd1 = tophat_cmd;
 			System.out.println("Executing Tophat Command : " + cmd1);
-			ret = ProcessUtil.runCommand(new Command(tophat_cmd));
-			if(ret == 0 ){
-				fs2.copyFromLocalFile(false,new Path(tophat_output_dir), hdfs_job_path);
-			}
+			ProcessUtil.runCommandEOE(new Command(tophat_cmd));
+			fs2.copyFromLocalFile(false,new Path(tophat_output_dir), hdfs_job_path);
 			logger.info("Tophat Process is Complete ");
 		}catch (Exception e) {
 			throw new Exception(e.toString());

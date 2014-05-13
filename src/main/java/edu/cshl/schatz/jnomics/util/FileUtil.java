@@ -107,13 +107,11 @@ public class FileUtil {
     	String[] arr ;
     	try { 
     		logger.info("url : " + url);
-    		logger.info("token :" + token);
     		logger.info("filename :" + filename);
     		logger.info("Proxy is :" + proxy);
     		Path pfilename = new Path(filename);
     		String file = pfilename.getName();
     		if(!proxy.equals("")){
-    			logger.info("Getting in the if");
     	    	arr = proxy.split(":");
     	    	base = new BasicShockClient(new URL(url),new HttpHost(arr[0],Integer.parseInt(arr[1])),new AuthToken(token));
     		}else{

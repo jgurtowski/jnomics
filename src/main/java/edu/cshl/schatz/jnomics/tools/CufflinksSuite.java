@@ -111,36 +111,9 @@ public class CufflinksSuite{
 			}
 			String cmd = cufflinks_cmd;
 			System.out.println("Executing Cufflinks cmd : "+ cmd);
-			ret = ProcessUtil.runCommand(new Command(cufflinks_cmd));
-			
-			if(ret == 0){
+			ProcessUtil.runCommandEOE(new Command(cufflinks_cmd));
 			logger.info("Copying Results to hdfs : " +  hdfs_job_path);
 			fs.copyFromLocalFile(false,new Path(cuff_output_dir) , hdfs_job_path);
-			}
-			
-		/*	File[] files = new File(userhome).listFiles(new FilenameFilter() {
-				@Override
-				public boolean accept(File dir, String name) {
-					return name.matches(".*-cufflinks-.*[.]."+jobid);
-				}
-			});
-			for(File file : files)
-			{
-				logger.info("Copying log files to hdfs  : " +  hdfs_job_path+"/"+ file.getName());
-				fs.copyFromLocalFile(true,new Path(file.getAbsolutePath()),hdfs_job_path );
-			}
-			File[] pfiles = new File(userhome).listFiles(new FilenameFilter() {
-				@Override
-				public boolean accept(File dir, String name) {
-					return name.matches(".*-tophat-.*[.]p."+jobid);
-				}
-			});
-			for(File file : pfiles)
-			{
-				logger.info("Deleting file" + file.getAbsolutePath() );
-				file.delete();		
-			}
-			*/
 			System.out.println(" Cufflinks Process is Complete  ");
 		}catch (Exception e) {
 			e.printStackTrace();
@@ -169,7 +142,7 @@ public class CufflinksSuite{
 		List<String> filelist =  new ArrayList<String>();
 
 		try {
-			logger.info(" Copying cuffmege input files ");
+			logger.info(" Copying cuffmerge input files ");
 
 			fs.copyToLocalFile(false,new Path(cuffmerge_in), new Path(workingdir));
 			fs.copyToLocalFile(false,new Path(ref_genome), new Path(workingdir));
@@ -211,35 +184,9 @@ public class CufflinksSuite{
 			}
 			String cmd = cufflinks_cmd;
 			System.out.println("Executing Cuffmerge command :" + cmd);
-			ret = ProcessUtil.runCommand(new Command(cufflinks_cmd));
-			if(ret==0){
+			ProcessUtil.runCommandEOE(new Command(cufflinks_cmd));
 			logger.info("Copying Results to hdfs : " +  hdfs_job_path);
 			fs.copyFromLocalFile(false,new Path(cuffmerge_output_dir) , hdfs_job_path);
-			}
-			
-			/*File[] files = new File(userhome).listFiles(new FilenameFilter() {
-				@Override
-				public boolean accept(File dir, String name) {
-					return name.matches(".*-cuffmerge-.*[.]."+jobid);
-				}
-			});
-			for(File file : files)
-			{
-				logger.info("Copying log files to hdfs  : " +  hdfs_job_path + "/" + file.getName());
-				fs.copyFromLocalFile(true,new Path(file.getAbsolutePath()),hdfs_job_path );
-			}
-			File[] pfiles = new File(userhome).listFiles(new FilenameFilter() {
-				@Override
-				public boolean accept(File dir, String name) {
-					return name.matches(".*-tophat-.*[.]p."+jobid);
-				}
-			});
-			for(File file : pfiles)
-			{
-				logger.info("Deleting file" + file.getAbsolutePath() );
-				file.delete();		
-			}
-			*/
 			fs.deleteOnExit(new Path("cuffmerge-"+jobname+".txt"));
 			logger.info(" Cuffmerge Process is Complete  ");
 		}catch(Exception e){
@@ -301,36 +248,9 @@ public class CufflinksSuite{
 			}
 			cufflinks_cmd = cufflinks_cmd.concat(sb.toString());
 			System.out.println("Executing Cuffdiff command " + cufflinks_cmd);
-			ret = ProcessUtil.runCommand(new Command(cufflinks_cmd));
-			
-			if(ret == 0){
+			ProcessUtil.runCommandEOE(new Command(cufflinks_cmd));
 			logger.info("Copying Results to hdfs : " +  hdfs_job_path);
 			fs.copyFromLocalFile(false, new Path(cuffdiff_out), hdfs_job_path);
-			}
-			
-			/*File[] files = new File(userhome).listFiles(new FilenameFilter() {
-				@Override
-				public boolean accept(File dir, String name) {
-					return name.matches(".*-cuffdiff-.*[.]."+jobid);
-				}
-			});
-			for(File file : files)
-			{
-				logger.info("Copying log files to hdfs  : " +  hdfs_job_path+"/"+ file.getName());
-				fs.copyFromLocalFile(true,new Path(file.getAbsolutePath()),hdfs_job_path);
-			}
-			File[] pfiles = new File(userhome).listFiles(new FilenameFilter() {
-				@Override
-				public boolean accept(File dir, String name) {
-					return name.matches(".*-tophat-.*[.]p."+jobid);
-				}
-			});
-			for(File file : pfiles)
-			{
-				logger.info("Deleting file" + file.getAbsolutePath() );
-				file.delete();		
-			}
-			*/
 			logger.info(" Cuffdiff Process is Complete  ");
 		}catch(IOException e){
 			throw new IOException(e.toString());
@@ -374,9 +294,7 @@ public class CufflinksSuite{
 					workingdir,workingdir,infile,cuffcompare_out,workingdir,ref_gtfname);
 			String cmd = cufflinks_cmd;
 			System.out.println("Executing Cuffcompare Command : " + cmd);
-			ret  = ProcessUtil.runCommand(new Command(cufflinks_cmd));
-			
-			if(ret == 0){
+			ProcessUtil.runCommandEOE(new Command(cufflinks_cmd));
 			logger.info("Copying Results to hdfs : " +  hdfs_job_path);
 			if(!fs.exists(hdfs_job_path)){
 				fs.mkdirs(hdfs_job_path);
@@ -385,32 +303,6 @@ public class CufflinksSuite{
 			fs.copyFromLocalFile(false,new Path( workingdir + "/" +cuffcompare_out+".loci") , hdfs_job_path);
 			fs.copyFromLocalFile(false,new Path( workingdir + "/" +cuffcompare_out+".stats") , hdfs_job_path);
 			fs.copyFromLocalFile(false,new Path( workingdir + "/" +cuffcompare_out+".tracking") , hdfs_job_path);
-			}
-			
-			/*File[] files = new File(userhome).listFiles(new FilenameFilter() {
-				@Override
-				public boolean accept(File dir, String name) {
-					return name.matches(".*-cuffcompare-.*[.]."+jobid);
-				}
-			});
-			
-			for(File file : files)
-			{
-				logger.info("Copying log files to hdfs  : " +  fs.getHomeDirectory() + "/" + file.getName());
-				fs.copyFromLocalFile(true,new Path(file.getAbsolutePath()),fs.getHomeDirectory());
-			}
-			File[] pfiles = new File(userhome).listFiles(new FilenameFilter() {
-				@Override
-				public boolean accept(File dir, String name) {
-					return name.matches(".*-tophat-.*[.]p."+jobid);
-				}
-			});
-			for(File file : pfiles)
-			{
-				logger.info("Deleting file" + file.getAbsolutePath() );
-				file.delete();		
-			}
-			*/
 			fs.deleteOnExit(new Path("cuffcompare-"+jobname+".txt"));
 			logger.info(" Cuffcompare Process is Complete  ");
 	

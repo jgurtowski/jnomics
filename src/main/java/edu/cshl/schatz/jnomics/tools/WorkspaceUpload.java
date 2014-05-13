@@ -105,7 +105,7 @@ public class WorkspaceUpload {
 		logger.info("bedtools-tar" + tarfile);
 		logger.info("scriptfile is " + scriptfile);
 
-		genome.add("kb|g."+genome_id);
+//		genome.add("kb|"+genome_id);
 		String tarname = new Path(tarfile).getName();
 //		String ret;
 //		StringWriter strexpsample;

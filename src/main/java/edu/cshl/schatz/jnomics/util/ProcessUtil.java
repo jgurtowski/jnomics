@@ -90,4 +90,9 @@ public class ProcessUtil {
         if(0 != errorCode)
             throw new IOException(String.valueOf(errorCode));
     }
+    
+    public static void runCommandEOE(final Command command) throws Exception{
+    	exceptionOnError(runCommand(command));
+    	
+    }
 }
