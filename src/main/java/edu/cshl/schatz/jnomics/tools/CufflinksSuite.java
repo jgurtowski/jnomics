@@ -116,7 +116,7 @@ public class CufflinksSuite{
 			fs.copyFromLocalFile(false,new Path(cuff_output_dir) , hdfs_job_path);
 			System.out.println(" Cufflinks Process is Complete  ");
 		}catch (Exception e) {
-			e.printStackTrace();
+			throw new IOException(e.toString());
 		}
 
 		return true;
@@ -190,7 +190,7 @@ public class CufflinksSuite{
 			fs.deleteOnExit(new Path("cuffmerge-"+jobname+".txt"));
 			logger.info(" Cuffmerge Process is Complete  ");
 		}catch(Exception e){
-			e.printStackTrace();
+			throw new IOException(e.toString());
 		}
 		return true;	
 
@@ -307,7 +307,7 @@ public class CufflinksSuite{
 			logger.info(" Cuffcompare Process is Complete  ");
 	
 		}catch(Exception e){
-			e.printStackTrace();
+			throw new Exception(e.toString());
 		}
 		return true;	
 	}	
