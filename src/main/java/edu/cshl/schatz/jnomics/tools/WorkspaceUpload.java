@@ -162,14 +162,23 @@ public class WorkspaceUpload {
 		expsample.setSourceId(kb_id);
 		expsample.setSampleType("RNA-Seq");
 		expsample.setInterpretation("FPKM");
+		expsample.setExtSrcDate(srcdate);
+		expsample.setGenomeId("kb|"+genome_id);
+		expsample.setExpression_Sample_id(kb_id);
+		expsample.setExprlevel(in);
+		expsample.setShockUrl(shockurl);
+		Strain str = new Strain();
+		str.setGenomeId("kb|" + genome_id);
+		str.setDescription("kb|" +  genome_id + " wild_type reference strain");
+		str.setName("kb|" + genome_id);
+		str.setRefStrain("Y");
+		str.setWildType("Y");
+		expsample.setStrain(str);
 		expsample.setDescription(desc);
 		expsample.setTitle(title);
 		//		        expsample.setDataQuality(0);
 		//		        expsample.setOMedian((float) 0);
-		expsample.setExtSrcDate(srcdate);
-		expsample.setExprlevel(in);
-		expsample.setGenomeId("kb|"+genome_id);
-		expsample.setExpression_Sample_id(kb_id);
+		if( term_id != null && !term_id.equals(""))	{
 		List<String> ontoIds = Arrays.asList(term_id.split(","));
 		ontolist = new ExpressionOntologyTerm[ontoIds.size()];
 		List<String> termDefs = Arrays.asList(term_def.split(","));
@@ -179,16 +188,9 @@ public class WorkspaceUpload {
 			ontolist[i].setTermId(ontoIds.get(i));
 			ontolist[i].setTermdef(termDefs.get(i));
 			ontolist[i].setTermName(termNames.get(i));
+			}
+		expsample.setExpOntology(ontolist);		     
 		}
-		expsample.setExpOntology(ontolist);		        
-		Strain str = new Strain();
-		str.setGenomeId("kb|" + genome_id);
-		str.setDescription("kb|" +  genome_id + " wild_type reference strain");
-		str.setName("kb|" + genome_id);
-		str.setRefStrain("Y");
-		str.setWildType("Y");
-		expsample.setStrain(str);
-        expsample.setShockUrl(shockurl);
 		return expsample;
 	}
 

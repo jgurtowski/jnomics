@@ -10,7 +10,9 @@ import java.util.regex.Pattern;
 
 //import org.apache.commons.collections4.MultiMap;
 //import org.apache.commons.collections4.map.MultiValueMap;
-
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+ 
 
 
 
@@ -36,10 +38,13 @@ public class ExpressionSample {
 		@JsonProperty("numerical_interpretation")
 		private String numerical_interpretation;
 		
-		@JsonProperty("description")
-	    private String description;
 		
+		@JsonProperty("description")
+		@JsonInclude(value=Include.NON_EMPTY)
+	    private String description;
+		 
 		@JsonProperty("title")
+		@JsonInclude(value=Include.NON_EMPTY)
 	    private String title;
 		
 		@JsonProperty("external_source_date")
@@ -52,6 +57,7 @@ public class ExpressionSample {
 	    private String genome_id;
 		
 		@JsonProperty("expression_ontology_terms")
+		@JsonInclude(value=Include.NON_EMPTY)
 	    private ExpressionOntologyTerm[] expression_ontology_terms;
 		
 		@JsonProperty("expression_sample_id")
@@ -61,6 +67,7 @@ public class ExpressionSample {
 	    private Strain strain;
 
 		@JsonProperty("shock_url")
+		@JsonInclude(value=Include.NON_EMPTY)
 	    private String shock_url;
 		
 		public String getKbId() {
