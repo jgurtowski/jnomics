@@ -20,6 +20,8 @@ import edu.cshl.schatz.jnomics.util.FileUtil;
 import edu.cshl.schatz.jnomics.util.ShockUtil;
 
 import java.io.FilenameFilter;
+import java.io.File;
+import java.io.InputStream;
 
 public class GridJobMain extends Configured implements Tool {
 
@@ -50,6 +52,7 @@ public class GridJobMain extends Configured implements Tool {
 		FileSystem fs1 = null;
 		conf.addResource(new Path(conffile.getAbsolutePath()));
 		String gridJob = conf.get("grid.job.name");
+                System.out.println(gridJob);
 		String[] jobparts =  conf.get("grid.job.name").split("-");
 		String username = jobparts[0];
 		Path hdfs_job_path = null;
@@ -58,7 +61,23 @@ public class GridJobMain extends Configured implements Tool {
 			URI hdfs_uri = new URI(conf.get("fs.default.name"));
 			fs1 = FileSystem.get(hdfs_uri,conf,username);
 			hdfs_job_path = new Path( fs1.getHomeDirectory().toString());
-			if(gridJob.matches(".*-write-.*")){
+                        logger.info("hello");
+			if(gridJob.matches(".*-fastqtopege-.*")){
+                            String in1 = conf.get("fastq1","");
+                            String in2 = conf.get("fastq2","");
+                            String dest = conf.get("outfile", "");
+                            if( in1 == "" || in2 == "" || dest == ""){
+                                throw new Exception("bad configuration");
+                            }
+                            Path in1p = new Path(in1);
+                            Path in2p = new Path(in2);
+                            Path destp = new Path(dest);
+                            InputStream in1fs = fs1.open(in1p);
+                            InputStream in2fs = fs1.open(in2p);
+                            new PairedEndLoader().load(in1fs, in2fs, destp, fs1);
+                            in1fs.close();
+                            in2fs.close();
+                        }else if(gridJob.matches(".*-write-.*")){
 				String shockurl = conf.get("shock-url","");
 				String shocktoken = new String(Base64.decodeBase64(conf.get("shock-token","")));
 				String proxy = conf.get("http-proxy","");
@@ -117,12 +136,11 @@ public class GridJobMain extends Configured implements Tool {
 				}
 			}
 		}catch(Exception e) {
-			
 			throw new Exception(e.toString());
 		}finally{
-			copyanddelete(fs1,jobid,userhome,hdfs_job_path);
-			fs1.close();
-			conffile.delete();
+                    //copyanddelete(fs1,jobid,userhome,hdfs_job_path);
+                    fs1.close();
+                    conffile.delete();
 		}
 	}
 
