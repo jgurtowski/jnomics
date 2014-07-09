@@ -206,18 +206,15 @@ public class CufflinksSuite{
 		String cuffdiff_opts = conf.get("cuffdiff_opts","");
 		String merged_gtf = conf.get("cuffdiff_merged_gtf","");
 		String cuffdiff_lbs = conf.get("cuffdiff_condn_labels","");
+		String replicates = conf.get("withReplicates","");
 		String genome = null;
 		int ret ;
 		Path hdfs_job_path = new Path(fs.getHomeDirectory().toString()+"/"+cuffdiff_out);
 		final File dir = new File(workingdir + "/" + cuffdiff_out);
-
+		List<String> cuffdiff_in = null;
 		try {
 			logger.info("Copying cuffdiff input files ");
-
-			List<String> cuffdiff_in = Arrays.asList(cuffdiff_input.split(","));
-			if(!FileUtil.copyFromHdfs(fs,cuffdiff_in, workingdir)){
-				System.err.println("Error in Copying the Cuffdiff Input files "); 
-			}
+			cuffdiff_in = new ArrayList<String>();
 			String gtf = merged_gtf.substring(merged_gtf.lastIndexOf("/") + 1);
 			fs.copyToLocalFile(false, new Path(merged_gtf), new Path(workingdir));
 			fs.copyToLocalFile(false,new Path(ref_genome),  new Path(workingdir));
@@ -241,10 +238,44 @@ public class CufflinksSuite{
 				System.out.println("Output directory : "+ dir.toString());
 			}
 			cufflinks_cmd =  String.format("%s/cuffdiff -o %s -b %s/%s %s -L %s -u %s/%s",
-					workingdir,cuffdiff_out,workingdir,genome,cuffdiff_opts,cuffdiff_lbs,workingdir,gtf);
+				workingdir,cuffdiff_out,workingdir,genome,cuffdiff_opts,cuffdiff_lbs,workingdir,gtf);
 			StringBuilder sb =  new StringBuilder();
-			for(String bam_file : cuffdiff_in){
-				sb.append(" ").append(workingdir).append("/").append(bam_file).append(",");
+			
+			if(replicates.toLowerCase().trim().equals("yes")){
+				List<String> cuffdiff_lists = Arrays.asList(cuffdiff_input.split(":"));
+				for(String listing : cuffdiff_lists){	
+					int flag  = 0;
+					cuffdiff_in = Arrays.asList(listing.split(","));
+					if(!FileUtil.copyFromHdfs(fs,cuffdiff_in, workingdir)){
+						System.err.println("Error in Copying the Cuffdiff Input files "); 
+					}
+					sb.append(" ");
+					for(String bam_file : cuffdiff_in){
+						flag++;
+						if(flag < cuffdiff_in.size()){
+							sb.append(workingdir).append("/").append(bam_file).append(",");
+						}else{
+							sb.append(workingdir).append("/").append(bam_file).append(" ");
+						}
+					}
+					
+				}
+			}else{
+				sb.append(" ");
+				cuffdiff_in = Arrays.asList(cuffdiff_input.split(","));
+				if(!FileUtil.copyFromHdfs(fs,cuffdiff_in, workingdir)){
+					System.err.println("Error in Copying the Cuffdiff Input files "); 
+				}
+				for(String bam_file : cuffdiff_in){
+//					if(flag <= cuffdiff_in.size()){
+						sb.append(workingdir).append("/").append(bam_file).append(" ");
+//					}
+//					flag++;
+//					}else{
+//						sb.append(workingdir).append("/").append(bam_file);
+//					}
+				}
+				
 			}
 			cufflinks_cmd = cufflinks_cmd.concat(sb.toString());
 			System.out.println("Executing Cuffdiff command " + cufflinks_cmd);

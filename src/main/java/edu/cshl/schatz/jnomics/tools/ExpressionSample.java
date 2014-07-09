@@ -60,8 +60,8 @@ public class ExpressionSample {
 		@JsonInclude(value=Include.NON_EMPTY)
 	    private ExpressionOntologyTerm[] expression_ontology_terms;
 		
-		@JsonProperty("expression_sample_id")
-	    private String expression_sample_id;
+//		@JsonProperty("expression_sample_id")
+//	    private String expression_sample_id;
 		
 		@JsonProperty("strain")
 	    private Strain strain;
@@ -69,6 +69,9 @@ public class ExpressionSample {
 		@JsonProperty("shock_url")
 		@JsonInclude(value=Include.NON_EMPTY)
 	    private String shock_url;
+		
+		@JsonProperty("external_source_id")
+	    private String external_source_id;
 		
 		public String getKbId() {
 	        return kb_id;
@@ -112,7 +115,12 @@ public class ExpressionSample {
 	    public void setExtSrcDate(String ext_src_date) {
 	        this.external_source_date = ext_src_date;
 	    }
-	    
+	    public String getExtSrcId() {
+	        return external_source_id;
+	    }
+	    public void setExtSrcId(String ext_src_id) {
+	        this.external_source_id = ext_src_id;
+	    }
 	    public Map<String,Double> getExprlevel(){
 	    	return expression_levels;
 	    }
@@ -159,12 +167,12 @@ public class ExpressionSample {
 	    public void setExpOntology(ExpressionOntologyTerm[] exprOnto ) {
 	        this.expression_ontology_terms = exprOnto;
 	    }
-	    public String getExpression_Sample_id(){
-	    	return expression_sample_id;
-	    }
-	    public void setExpression_Sample_id(String  expression_sample_id) {
-	        this.expression_sample_id = expression_sample_id;
-	    }
+//	    public String getExpression_Sample_id(){
+//	    	return expression_sample_id;
+//	    }
+//	    public void setExpression_Sample_id(String  expression_sample_id) {
+//	        this.expression_sample_id = expression_sample_id;
+//	    }
 	        
 	    public String getGenomeId(){
 	    	return genome_id;

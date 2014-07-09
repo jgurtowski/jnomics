@@ -74,11 +74,13 @@ public class WorkspaceUpload {
 		List<String> genome = new ArrayList<String>();
 		ObjectMapper objectMapper = new ObjectMapper();
 		String input = conf.get("grid.input.dir","");
-		String kb_id = "kb|"+conf.get("kb_id","");
+//		String kb_id = "kb|"+conf.get("kb_id","");
+		String kb_id = conf.get("kb_id","");
 		String genome_id = conf.get("genome_id","");
 		String description = conf.get("description","");
 		String title = conf.get("title","");
 		String srcDate  = conf.get("ext_src_date","");
+		String ext_src_id = conf.get("ext_src_id","");
 		String onto_term_id = conf.get("onto_term_id","");
 		String onto_term_name = conf.get("onto_term_name","");
 		String onto_term_def = conf.get("onto_term_def","");
@@ -121,7 +123,7 @@ public class WorkspaceUpload {
 			fs.copyToLocalFile(new Path(input), new Path(workingdir+"/transcripts.gtf"));
 			findfeatureOverlap.runbedtoolsScript(fs,scriptfile,entityfile,parentdir);
 			in = fs.open(new Path(parentdir,"kbase_transcripts.gtf"));
-			ExpressionSample expsamp = createExprSample(kb_id, in,genome_id,description,title,srcDate,onto_term_id, onto_term_def,onto_term_name,seq_type,shockurl);
+			ExpressionSample expsamp = createExprSample(kb_id, in,genome_id,description,title,srcDate,onto_term_id, onto_term_def,onto_term_name,seq_type,shockurl,ext_src_id);
 			//configure Object mapper for pretty print
 			objectMapper.configure(SerializationFeature.INDENT_OUTPUT,false);
 			out = fs.create(new Path(kb_id));
@@ -154,23 +156,25 @@ public class WorkspaceUpload {
 	 * Creates the Expression JSON Objects.
 	 * </pre>
 	 */
-	public static ExpressionSample createExprSample(String kb_id,InputStream in,String genome_id, String desc , String title ,String srcdate, String term_id,String term_def,String term_name,String Seq_type , String shockurl) {
-
+	public static ExpressionSample createExprSample(String kb_id,InputStream in,String genome_id, String desc , String title ,String srcdate, String term_id,String term_def,String term_name,String Seq_type , String shockurl, String ext_src_id) {
+		String extId = ext_src_id.split("::")[1];
 		ExpressionSample expsample = new ExpressionSample();;
 		ExpressionOntologyTerm[] ontolist;
 		expsample.setKbId(kb_id);
-		expsample.setSourceId(kb_id);
+		expsample.setSourceId(ext_src_id+"___"+extId);
+		logger.info(ext_src_id + "and ext src id " + ext_src_id.split("::")[1]);
+		expsample.setExtSrcId(extId);
 		expsample.setSampleType("RNA-Seq");
 		expsample.setInterpretation("FPKM");
 		expsample.setExtSrcDate(srcdate);
 		expsample.setGenomeId("kb|"+genome_id);
-		expsample.setExpression_Sample_id(kb_id);
+//		expsample.setExpression_Sample_id(kb_id);
 		expsample.setExprlevel(in);
 		expsample.setShockUrl(shockurl);
 		Strain str = new Strain();
 		str.setGenomeId("kb|" + genome_id);
 		str.setDescription("kb|" +  genome_id + " wild_type reference strain");
-		str.setName("kb|" + genome_id);
+		str.setName("kb|" + genome_id + " wild_type reference strain");
 		str.setRefStrain("Y");
 		str.setWildType("Y");
 		expsample.setStrain(str);
