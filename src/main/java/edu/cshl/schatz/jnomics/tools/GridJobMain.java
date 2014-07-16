@@ -102,7 +102,7 @@ public class GridJobMain extends Configured implements Tool {
 				logger.info("nodeid : " + nodeid);
 				try{
 					FileUtil.copyFromShock(shockurl, shocktoken, proxy, fs1 , nodeid,dest);
-					copyanddelete(fs1,jobid,userhome,hdfs_job_path);
+//					copyanddelete(fs1,jobid,userhome,hdfs_job_path);
 				}catch(Exception e){
 					e.printStackTrace();
 				}
@@ -110,37 +110,40 @@ public class GridJobMain extends Configured implements Tool {
 				System.out.println("Uploading the Expression object to Workspace");
 				WorkspaceUpload ws = new WorkspaceUpload(conf);
 				ws.uploadExpression(fs1,conf);
-				copyanddelete(fs1,jobid,userhome,hdfs_job_path);
+//				copyanddelete(fs1,jobid,userhome,hdfs_job_path);
 			}else if(gridJob.matches(".*-tophat-.*")){
 				System.out.println("Executing  tophat");
 				AlignTophat tophat = new AlignTophat(conf);
 				tophat.prepareBinaries(fs1, conf);
 				tophat.align(fs1, conf);
-				copyanddelete(fs1,jobid,userhome,hdfs_job_path);
+//				copyanddelete(fs1,jobid,userhome,hdfs_job_path);
 			}else { 
 				System.out.println("Executing Cufflinks");
 				CufflinksSuite cuff = new CufflinksSuite(conf);
 				cuff.prepareBinaries(fs1, conf);
 				if(gridJob.matches(".*-cufflinks-.*")){
 					cuff.callCufflinks(fs1,conf);
-					copyanddelete(fs1,jobid,userhome,hdfs_job_path);
+//					copyanddelete(fs1,jobid,userhome,hdfs_job_path);
 				}else if(gridJob.matches(".*-cuffmerge-.*")){
 					cuff.callCuffmerge(fs1,conf);
-					copyanddelete(fs1,jobid,userhome,hdfs_job_path);
+//					copyanddelete(fs1,jobid,userhome,hdfs_job_path);
 				}else if(gridJob.matches(".*-cuffdiff-.*")){
 					cuff.callCuffdiff(fs1,conf);
-					copyanddelete(fs1,jobid,userhome,hdfs_job_path);
+//					copyanddelete(fs1,jobid,userhome,hdfs_job_path);
 				}else if(gridJob.matches(".*-cuffcompare-.*")){
 					cuff.callCuffcompare(fs1,conf);
-					copyanddelete(fs1,jobid,userhome,hdfs_job_path);
+					
 				}
 			}
 		}catch(Exception e) {
-			throw new Exception(e.toString());
+			e.printStackTrace();
+//			throw new Exception(e.toString());
 		}finally{
                     //copyanddelete(fs1,jobid,userhome,hdfs_job_path);
+			 		copyanddelete(fs1,jobid,userhome,hdfs_job_path);
                     fs1.close();
                     conffile.delete();
+                   
 		}
 	}
 
