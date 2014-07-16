@@ -61,7 +61,6 @@ public class GridJobMain extends Configured implements Tool {
 			URI hdfs_uri = new URI(conf.get("fs.default.name"));
 			fs1 = FileSystem.get(hdfs_uri,conf,username);
 			hdfs_job_path = new Path( fs1.getHomeDirectory().toString());
-                        logger.info("hello");
 			if(gridJob.matches(".*-fastqtopege-.*")){
                             String in1 = conf.get("fastq1","");
                             String in2 = conf.get("fastq2","");
@@ -136,8 +135,8 @@ public class GridJobMain extends Configured implements Tool {
 				}
 			}
 		}catch(Exception e) {
-			e.printStackTrace();
-//			throw new Exception(e.toString());
+//			e.printStackTrace();
+			throw new Exception(e.toString());
 		}finally{
                     //copyanddelete(fs1,jobid,userhome,hdfs_job_path);
 			 		copyanddelete(fs1,jobid,userhome,hdfs_job_path);
