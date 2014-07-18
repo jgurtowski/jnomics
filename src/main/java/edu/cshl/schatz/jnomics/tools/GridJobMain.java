@@ -64,7 +64,7 @@ public class GridJobMain extends Configured implements Tool {
 			if(gridJob.matches(".*-fastqtopege-.*")){
                             String in1 = conf.get("fastq1","");
                             String in2 = conf.get("fastq2","");
-                            String dest = conf.get("outfile", "");
+                            String dest = conf.get("grid.output.dir", "");
                             if( in1 == "" || in2 == "" || dest == ""){
                                 throw new Exception("bad configuration");
                             }
@@ -76,7 +76,7 @@ public class GridJobMain extends Configured implements Tool {
                             new PairedEndLoader().load(in1fs, in2fs, destp, fs1);
                             in1fs.close();
                             in2fs.close();
-                        }else if(gridJob.matches(".*-write-.*")){
+            }else if(gridJob.matches(".*-write-.*")){
 				String shockurl = conf.get("shock-url","");
 				String shocktoken = new String(Base64.decodeBase64(conf.get("shock-token","")));
 				String proxy = conf.get("http-proxy","");
