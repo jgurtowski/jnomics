@@ -84,12 +84,8 @@ public class GridJobMain extends Configured implements Tool {
 				logger.info("Shock url " + shockurl + " Token is  " + shocktoken);
 				String filename = conf.get("grid.input.dir","");
 				logger.info("filename " + filename);
-				try{
-					FileUtil.copyToShock(shockurl, shocktoken,proxy, fs1 , filename);
-					copyanddelete(fs1,jobid,userhome,hdfs_job_path);
-				}catch(Exception e){
-					e.printStackTrace();
-				}
+				FileUtil.copyToShock(shockurl, shocktoken,proxy, fs1 , filename);
+					//copyanddelete(fs1,jobid,userhome,hdfs_job_path);
 			}else if(gridJob.matches(".*-read-.*")){
 				String shockurl = conf.get("shock-url","");
 				String shocktoken = new String(Base64.decodeBase64(conf.get("shock-token","")));
@@ -99,12 +95,11 @@ public class GridJobMain extends Configured implements Tool {
 				String nodeid = conf.get("grid.input.dir","");
 				String dest = conf.get("grid.output.dir","");
 				logger.info("nodeid : " + nodeid);
-				try{
-					FileUtil.copyFromShock(shockurl, shocktoken, proxy, fs1 , nodeid,dest);
+				FileUtil.copyFromShock(shockurl, shocktoken, proxy, fs1 , nodeid,dest);
 //					copyanddelete(fs1,jobid,userhome,hdfs_job_path);
-				}catch(Exception e){
-					e.printStackTrace();
-				}
+				//}catch(Exception e){
+				//	e.printStackTrace();
+				//}
 			}else if(gridJob.matches(".*-wsupload-.*")){
 				System.out.println("Uploading the Expression object to Workspace");
 				WorkspaceUpload ws = new WorkspaceUpload(conf);
