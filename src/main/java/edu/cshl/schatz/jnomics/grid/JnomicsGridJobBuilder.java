@@ -12,7 +12,7 @@ import edu.cshl.schatz.jnomics.util.DefaultOutputStreamHandler;
 import edu.cshl.schatz.jnomics.util.InputStreamHandler;
 import edu.cshl.schatz.jnomics.util.OutputStreamHandler;
 import edu.cshl.schatz.jnomics.util.ProcessUtil;
-import edu.cshl.schatz.jnomics.util.FileUtil;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -132,46 +132,48 @@ public class JnomicsGridJobBuilder {
 		String jobinfo;
 		try {
 			session.init("");
+			//	System.out.println("contact is " + contact);
+			//	session.init(contact);
+			//	System.out.println(session.getContact());
+			//	System.out.println("jobid " + JobId + " finished with exit status ");
+			//	retval = session.wait(JobId,Session.TIMEOUT_NO_WAIT);
+			//System.out.println("jobid " + JobId + " finished with exit status " +  retval.getExitStatus());
 			ret  = session.getJobProgramStatus(JobId);
-			session.exit();
+			//	System.out.println("values is " + Session.UNDETERMINED);
+			//	retval = session.wait(JobId,Session.TIMEOUT_NO_WAIT);
+			//	System.out.println("jobid " + JobId + " finished with exit status " +  retval.getExitStatus());
 		} catch (DrmaaException e) {
 			BufferedReader stdInput = null;
 			BufferedReader stdError = null;
 			try{
-				/* I want to run the command qcct -j jobid | grep exit. It that gives a exit status 1 , I want the thread to sleep and retry 2 times. */
-				
 				Thread.sleep(1000);
 				String[] cmd = {"/bin/sh", "-c","qacct -j "+ JobId.trim() + " | grep exit"};
-//				String cmd = "qacct -j "+ JobId.trim() + " | grep exit";
-//			        int jobstat = ProcessUtil.runCommand(new Command(cmd));
-//				if(jobstat == 0){
-//					ret = 48;
-//				}else{
-//				    ret = 64;	
-//				}
-				/* old code for grid-job-status */
 				Process p = Runtime.getRuntime().exec(cmd);
 				p.waitFor();
 				stdInput = new BufferedReader(new 
-												InputStreamReader(p.getInputStream()));
+						InputStreamReader(p.getInputStream()));
 				stdError = new BufferedReader(new 
-							InputStreamReader(p.getErrorStream()));
-				if(stdInput.readLine() != null){
-					jobinfo = stdInput.readLine();
-					String[] jobstatus = jobinfo.split("  ");
-					if(jobstatus[1].trim().equals("0")){
-						ret = 48;
-					}else if(jobstatus[1].trim().equals("1")){
-						ret = 64;
-					}
-				}else{
-					 	Thread.sleep(1000);
-					 //	#### Retry to run the command for 3 times and return a failure code.
-					 }
-				
+						InputStreamReader(p.getErrorStream()));
+				jobinfo = stdInput.readLine();
+				//System.out.println(jobinfo);
+				String[] jobstatus = jobinfo.split("  ");
+				//System.out.println("String is " + jobstatus[1]);
+				if(jobstatus[1].trim().equals("0")){
+					ret = 48;
+				}else if(jobstatus[1].trim().equals("1")){
+					ret = 64;
+				}
+				stdInput.close();
+				stdError.close();
+				//			ProcessUtil.runCommand(new Command("qacct -j "+ JobId.trim(),new DefaultOutputStreamHandler()))
+				//			System.out.println(jobinfo.toString());
+			
 				}catch(Exception ee){
 					ee.printStackTrace();
 				}	
+		}finally{
+			session.exit();
+
 		}
 		return returnCode.get(ret);
 	}
