@@ -107,16 +107,16 @@ public class WorkspaceUpload {
 		logger.info("bedtools-tar" + tarfile);
 		logger.info("scriptfile is " + scriptfile);
 
-//		genome.add("kb|"+genome_id);
+		genome.add("kb|"+genome_id);
 		String tarname = new Path(tarfile).getName();
 //		String ret;
 //		StringWriter strexpsample;
 		try{
 			//			out = fs.create(new Path(kb_id));
 			Path parentdir =  new Path(input).getParent();
-//			GetGenomeFeatures get1 = new GetGenomeFeatures();
-//			entityfile = get1.getfeatures(fs, cdmi_url, genome);
-			entityfile = "kb_" + genome_id + "_fids.txt";
+			GetGenomeFeatures get1 = new GetGenomeFeatures();
+			entityfile = get1.getfeatures(fs, cdmi_url, genome);
+//			entityfile = "kb_" + genome_id + "_fids.txt";
 			fs.copyToLocalFile(new Path(tarfile), new Path(workingdir));
 			FileUtil.untar(fs,tarname, workingdir);
 			fs.copyToLocalFile(new Path(entityfile), new  Path(workingdir));

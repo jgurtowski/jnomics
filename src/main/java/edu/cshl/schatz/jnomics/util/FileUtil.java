@@ -152,7 +152,7 @@ public class FileUtil {
     	    	arr = proxy.split(":");
     	    	base = new BasicShockClient(new URL(url),new HttpHost(arr[0],Integer.parseInt(arr[1])),new AuthToken(token));
     		}else{
-    			base = new BasicShockClient(new URL(url),null,new AuthToken(token));
+    		base = new BasicShockClient(new URL(url),null,new AuthToken(token));
     		}
     		fsout = fs.create(new Path(dest),true);
     		base.getFile(new ShockNodeId(nodeid.trim()),fsout);

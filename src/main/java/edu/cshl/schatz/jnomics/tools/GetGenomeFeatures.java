@@ -29,7 +29,7 @@ public class GetGenomeFeatures{
 		//		FSDataOutputStream fsout = null ;
 		ftype.add("CDS");
 		String name  = genome_id.get(0);
-		String outfilename = name.substring(name.lastIndexOf("|")+ 1);
+		String outfilename = "kb_"+name.substring(name.lastIndexOf("|")+ 1)+"_fids.txt";
 		try {
 			fsout = fs.create(new Path(outfilename));
 			cdmi = new CDMI_API(cdmi_url);
