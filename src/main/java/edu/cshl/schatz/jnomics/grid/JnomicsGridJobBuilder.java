@@ -13,6 +13,7 @@ import edu.cshl.schatz.jnomics.util.InputStreamHandler;
 import edu.cshl.schatz.jnomics.util.OutputStreamHandler;
 import edu.cshl.schatz.jnomics.util.ProcessUtil;
 import edu.cshl.schatz.jnomics.util.FileUtil;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -32,8 +33,29 @@ import java.util.Collections;
 /**
  * User: Sri
  */
+
+
+class Lock{
+
+	  private  boolean  isLocked = false;
+
+	  public synchronized   void lock()
+	  throws InterruptedException{
+	    while(isLocked){
+	       wait();
+	    }
+	    isLocked = true;
+	  }
+
+	  public synchronized  void unlock(){
+	    isLocked = false;
+	    notify();
+	  }
+	}
+
 public class JnomicsGridJobBuilder {
 
+	private static Lock lock = new Lock();
 	private final org.slf4j.Logger logger = LoggerFactory.getLogger(JnomicsGridJobBuilder.class);
 
 	private Configuration conf = null;
@@ -88,6 +110,7 @@ public class JnomicsGridJobBuilder {
 	}  
 
 	public JnomicsGridJobBuilder LaunchGridJob(Configuration conf) throws Exception{
+		lock.lock();
 		String scriptfile = new File(conf.get("grid-script-path")).getAbsolutePath();
 		String workingdir = conf.get("grid_working_dir");
 		String jobname = conf.get("grid.job.name");
@@ -119,13 +142,15 @@ public class JnomicsGridJobBuilder {
 //			throw new Exception(e.getMessage());
 		}finally{
 			session.exit();
+			lock.unlock();
 		}
 		//conf.set("grid_session",scontact);
 		conf.set("grid_jobId",jobId);
 		return this ;
 	}
 
-	public String getjobstatus(String JobId)throws DrmaaException{
+	public  String getjobstatus(String JobId)throws Exception{
+		lock.lock();
 		SessionFactory factory = SessionFactory.getFactory();
 		Session session = factory.getSession();
 		int ret = 0;
@@ -133,13 +158,13 @@ public class JnomicsGridJobBuilder {
 		try {
 			session.init("");
 			ret  = session.getJobProgramStatus(JobId);
-			session.exit();
+			//session.exit();
 		} catch (DrmaaException e) {
 			BufferedReader stdInput = null;
 			BufferedReader stdError = null;
 			try{
 				/* I want to run the command qcct -j jobid | grep exit. It that gives a exit status 1 , I want the thread to sleep and retry 2 times. */
-				
+				String str = null;
 				Thread.sleep(1000);
 				String[] cmd = {"/bin/sh", "-c","qacct -j "+ JobId.trim() + " | grep exit"};
 //				String cmd = "qacct -j "+ JobId.trim() + " | grep exit";
@@ -153,26 +178,33 @@ public class JnomicsGridJobBuilder {
 				Process p = Runtime.getRuntime().exec(cmd);
 				p.waitFor();
 				stdInput = new BufferedReader(new 
-												InputStreamReader(p.getInputStream()));
+							InputStreamReader(p.getInputStream()));
 				stdError = new BufferedReader(new 
 							InputStreamReader(p.getErrorStream()));
-				if(stdInput.readLine() != null){
-					jobinfo = stdInput.readLine();
+				if((str = stdInput.readLine()) != null){
+					jobinfo = str;
 					String[] jobstatus = jobinfo.split("  ");
 					if(jobstatus[1].trim().equals("0")){
 						ret = 48;
 					}else if(jobstatus[1].trim().equals("1")){
 						ret = 64;
 					}
-				}else{
-					 	Thread.sleep(1000);
+				}
+				stdInput.close();
+				stdError.close();
+				//else{
+				//	 	Thread.sleep(1000);
 					 //	#### Retry to run the command for 3 times and return a failure code.
-					 }
-				
+				//	 }
+
 				}catch(Exception ee){
 					ee.printStackTrace();
-				}	
-		}
+				}
+		}finally{
+	        session.exit();
+	        lock.unlock();
+
+		}	
 		return returnCode.get(ret);
 	}
 
